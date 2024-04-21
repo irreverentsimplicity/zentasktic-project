@@ -9,8 +9,8 @@ import (
 
 type Actor struct {
 	Id 		    	string `json:"actorId"`
-    TeamId 			string `json:"teamId"`
 	Name 		    string `json:"actorName"`
+	Address			std.Address	`json:"actorAddress"`
     // github handle?
 }
 
@@ -32,7 +32,7 @@ func (a Actor) EditActor() (err errors) {
 
 }
 
-func (a Actor) AddActorToTeam(teamId string) (err errors) {
+func (a Actor) AddActorToTeam(t Team) (err errors) {
 
 }
 
@@ -63,7 +63,7 @@ func GetActorById(actorId string) (a Actor, err errors) {
 }
 
 func GetAllActors()(actors string, err) {
-	
+
 }
 
 func (a Actor) GetActorTeams() (actorTeams string, err errors) {

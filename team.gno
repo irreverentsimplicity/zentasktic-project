@@ -10,10 +10,12 @@ import (
 type Team struct {
 	Id 			string `json:"teamId"`
 	Name 		string `json:"teamName"`
+	Members		[]*Actor `json:"teamMembers"`
 }
 
 var {
 	Teams avl.Tree // t.id -> t
+	Members	avl.Tree // t.id -> []*Actor
 	TeamTasks avl.Tree // t.id -> []Tasks
 	TeamProjects avl.Tree // t.id -> []Projects
 }
@@ -52,7 +54,7 @@ func GetTeamById(teamId string) (t Team, err errors) {
 
 }
 
-func GetAllTeam()(actors string, err) {
+func GetAllTeams()(teams string, err) {
 	
 }
 

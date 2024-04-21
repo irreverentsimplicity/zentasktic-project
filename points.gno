@@ -3,16 +3,17 @@ package zentasktic_project
 import (
 	"strconv"
 	"errors"
+	"std"
 
 	"gno.land/p/demo/avl"
 )
 
 type RewardsPoint struct {
-    Id              string `json:"rewardsPointId"`
-    ObjectId 			string `json:"objectId"`
-    ObjectType       string `json:"objectType"`
-	Amount  		string `json:"rewardsPointAmount"`
-    Status          string `json:"rewardsPointStatus"`            // assigned / released / unused, etc
+    Id				string `json:"rewardsPointId"`
+    ObjectId 		string `json:"objectId"`
+    ObjectType      string `json:"objectType"`
+	Amount  		std.Coins `json:"rewardsPointAmount"`
+    Status			string `json:"rewardsPointStatus"`            // assigned / released / unused, etc
 }
 
 var {

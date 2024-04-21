@@ -1,6 +1,6 @@
 # Proposed data structures rich types for a DAO / team
 
-These types are intended to be used in the Decide realm. 
+These types are intended to be used in the Decide realm.
 
 ## Actor
 
@@ -8,9 +8,9 @@ The basic working unit for an individual. Actors can be team members, or individ
 
 ```
 type Actor struct {
-	Id 		    	string `json:"actorId"`
-    TeamId 			string `json:"teamId"`
-	Name 		    string `json:"actorName"`
+    Id 		    string `json:"actorId"`
+    TeamId 		string `json:"teamId"`
+    Name 		string `json:"actorName"`
     // github handle?
 }
 ```
@@ -32,10 +32,10 @@ WorkHours are abstract time measurements assignable to a Task / Projet. They may
 
 ```
 type WorkHour struct {
-    Id					string `json:"workHourId"`
-    ObjectId 			string `json:"objectId"`
-    ObjectType       string `json:"objectType"` // Task, Project
-	Amount  		string `json:"workHourAmount"`
+    Id                  string `json:"workHourId"`
+    ObjectId            string `json:"objectId"`
+    ObjectType          string `json:"objectType"` // Task, Project
+    Amount              string `json:"workHourAmount"`
 }
 ```
 
@@ -46,9 +46,9 @@ RewardsPoints are abstract denominations for how much a certain task or project 
 ```
 type RewardsPoint struct {
     Id              string `json:"rewardsPointId"`
-    ObjectId 			string `json:"objectId"`
-    ObjectType       string `json:"objectType"`
-	Amount  		string `json:"rewardsPointAmount"`
+    ObjectId 		string `json:"objectId"`
+    ObjectType      string `json:"objectType"`
+    Amount          string `json:"rewardsPointAmount"`
     Status          string `json:"rewardsPointStatus"`            // assigned / released / unused, etc
 }
 ```
