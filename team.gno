@@ -16,8 +16,8 @@ type Team struct {
 var {
 	Teams avl.Tree // t.id -> t
 	Members	avl.Tree // t.id -> []*Actor
-	TeamTasks avl.Tree // t.id -> []Tasks
-	TeamProjects avl.Tree // t.id -> []Projects
+	TeamTasks avl.Tree // t.id -> []*Tasks
+	TeamProjects avl.Tree // t.id -> []*Projects
 }
 
 func (t Team) AddTeam() (err errors) { 
