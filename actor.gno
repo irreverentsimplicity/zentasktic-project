@@ -17,8 +17,8 @@ type Actor struct {
 var {
 	Actors avl.Tree // a.id -> a
 	ActorTeams avl.Tree // a.id -> []*Teams
-	ActorTasks avl.Tree // a.id -> []*WorkableTasks
-	ActorProjects avl.Tree // a.id -> []*WorkableProjects
+	ActorTasks avl.Tree // a.id -> []*WorkableTask
+	ActorProjects avl.Tree // a.id -> []*WorkableProject
 }
 
 func (a Actor) AddActor() (err errors) { 
@@ -242,7 +242,30 @@ func (a Actor) AssignActorToTask(wt WorkableTask) (err errors) {
 } 
 
 func (a Actor) UnassignActorFromTask(wt WorkableTask) (err errors) {
-	
+	if ActorTasks.Size() != 0 {
+		existingActorTasks, exist := ActorTasks.Get(a.Id)
+		if exist {
+
+			var tindex int = -1
+			for i, task := range existingActorTasks.([]*WorkableTask) {
+				if wt.id == task.id {
+					tindex = i
+					break
+				}
+				if tindex != -1 {
+					existingActorTasks = append(existingActorTasks.([]*WorkableTask)[:tindex], existingActorTasks.([]*WorkableTask)[tindex+1:]...)
+				} else {
+					// Actor tasks not found in the ActorTasks tree
+					return ErrActorTasksNotFound 
+				}
+				ActorTasks.Set(a.Id, existingActorTasks)
+			}
+		} else {
+			// Actor tasks not found in the ActorTasks tree
+			return ErrActorTasksNotFound 
+		}
+	}
+	return nil
 } 
 
 func (a Actor) AssignActorToProject(wp WorkableProject) (err errors) {
@@ -265,13 +288,45 @@ func (a Actor) AssignActorToProject(wp WorkableProject) (err errors) {
 } 
 
 func (a Actor) UnassignActorFromProject(wp WorkableProject) (err errors) {
-	
+	if ActorProjects.Size() != 0 {
+		existingActorProjects, exist := ActorProjects.Get(a.Id)
+		if exist {
+
+			var tindex int = -1
+			for i, project := range existingActorProjects.([]*WorkableProject) {
+				if wp.id == project.id {
+					tindex = i
+					break
+				}
+				if tindex != -1 {
+					existingActorProjects = append(existingActorProjects.([]*WorkableProject)[:tindex], existingActorProjects.([]*WorkableProject)[tindex+1:]...)
+				} else {
+					// Actor projects not found in the ActorTasks tree
+					return ErrActorProjectsNotFound 
+				}
+				ActorProjects.Set(a.Id, existingActorProjects)
+			}
+		} else {
+			// Actor projects not found in the ActorTasks tree
+			return ErrActorProjectsNotFound 
+		}
+	}
+	return nil
 } 
 
 // getters
 
 func GetActorById(actorId string) (a Actor, err errors) {
+	if Actors.Size() != 0 {
+		actor, exist := Actors.Get(actorId)
+		if exist {
+			return actor.(Actor), nil
+		} else {
+			retrun nil, ErrActorIdNotFound
+		}
 
+	}
+	return nil, ErrActorIdNotFound
 }
 
 func GetAllActors()(actors string, err) {
