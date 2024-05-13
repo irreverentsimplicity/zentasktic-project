@@ -329,12 +329,56 @@ func GetActorById(actorId string) (a Actor, err errors) {
 	return nil, ErrActorIdNotFound
 }
 
-func GetAllActors()(actors string, err) {
+func GetAllActors()(actors string, err errors) {
+	// implementation
+	var allActors []Actor
 
+	// Iterate over the Actors AVL tree to collect all Actor objects.
+	Actors.Iterate("", "", func(key string, value interface{}) bool {
+		if actor, ok := value.(Actor); ok {
+			allActors = append(allActors, actor)
+		}
+		return false // Continue iteration until all nodes have been visited.
+	})
+
+	// Create a ActorsObject with all collected actors.
+	actorsObject := &ActorsObject{
+		Actors: allActors,
+	}
+
+	// Use the custom MarshalJSON method to marshal the actors into JSON.
+	marshalledActors, merr := actorsObject.MarshalJSON()
+	if merr != nil {
+		return "", merr
+	} 
+	return string(marshalledActors), nil
 }
 
 func (a Actor) GetActorTeams() (actorTeams string, err errors) {
+	actorTeams := []*Team
 
+	if ActorTeams.Size() != 0 {
+		existingActorTeams, exist := ActorTeams.Get(a.Id)
+		if !exist {
+			// if there's no record in ActorTeams, we don't have to return anything
+			return nil, ErrActorTeamsNotFound
+		} else {
+			actorTeams = existingActorTeams
+		}
+	}
+
+	if actorTeams.Size() != 0 {
+		teamsObject := &TeamsObject {
+			Teams: actorTeams,
+		}
+		marshalledTeams, merr := teamsObject.MarshalJSON()
+		if merr != nil {
+			return "", merr
+		} 
+		return string(marshalledTeams), nil
+	}
+
+	return "", ErrActorTeamsNotFound
 }
 
 func (a Actor) GetActorTasks() (actorTasks string, err errors) {
