@@ -3,8 +3,10 @@ package zentasktic_project
 import (
 	"strconv"
 	"errors"
+	"std"
 
 	"gno.land/p/demo/avl"
+	"gno.land/p/demo/zentasktic"
 )
 
 type Actor struct {
@@ -14,14 +16,14 @@ type Actor struct {
     // github handle?
 }
 
-var {
+var (
 	Actors avl.Tree // a.id -> a
 	ActorTeams avl.Tree // a.id -> []*Teams
 	ActorTasks avl.Tree // a.id -> []*WorkableTask
 	ActorProjects avl.Tree // a.id -> []*WorkableProject
-}
+)
 
-func (a Actor) AddActor() (err errors) { 
+func (a Actor) AddActor() (err error) { 
 	// implementation
 	
 	if Actors.Size() != 0 {
@@ -35,7 +37,7 @@ func (a Actor) AddActor() (err errors) {
 
 }
 
-func (a Actor) RemoveActor() (err errors) {
+func (a Actor) RemoveActor() (err error) {
 	// implementation
 	existingActor := Actor{}
 	if Actors.Size() != 0 {
@@ -109,7 +111,7 @@ func (a Actor) RemoveActor() (err errors) {
 
 }
 
-func (a Actor) EditActor() (err errors) {
+func (a Actor) EditActor() (err error) {
 	// implementation, get actor by Id and replace the object
 	existingActor := Actor{}
 	if Actors.Size() != 0 {
@@ -123,7 +125,7 @@ func (a Actor) EditActor() (err errors) {
 	return nil
 }
 
-func (a Actor) AddActorToTeam(t Team) (err errors) {
+func (a Actor) AddActorToTeam(t Team) (err error) {
 	// we cross reference actor membership in 2 objects: ActorTeams, and Members
 	existingActor := Actor{}
 	if Actors.Size() != 0 {
@@ -133,56 +135,46 @@ func (a Actor) AddActorToTeam(t Team) (err errors) {
 		}
 	}
 
-	existingTeam := Team{}
-	if Teams.Size() != 0 {
-		existingTeam, exist := Teams.Get(t.Id)
-		if !exist {
-			return ErrTeamIdNotFound
-		}
-	}
+	// Update ActorTeams
+    var updatedTeams []*Team
+    existingActorTeams, exist := ActorTeams.Get(a.Id)
+    if exist {
+        teams, ok := existingActorTeams.([]*Team)
+        if !ok {
+            return ErrActorTeamsNotFound
+        }
+        updatedTeams = append(teams, &t)
+    } else {
+        updatedTeams = []*Team{&t}
+    }
+    ActorTeams.Set(a.Id, updatedTeams)
 
-	// ActorTeams
-	existingActorTeams, texist := ActorTeams.Get(a.Id)
-	if !texist {
-		// If the actor teams tree has no teams yet, initialize the slice.
-		existingActorTeams = []*Team{}
-	} else {
-		teams, ok := existingActorTeams.([]*Team)
-		if !ok {
-			return ErrActorTeamsNotFound
-		}
-		existingActorTeams = teams
-	}
-	
-	updatedTeams := append(existingActorTeams.([]*Team), t)
-	ActorTeams.Set(a.Id, updatedTeams)
+    // Update Members
+    var updatedMembers []*Actor
+    existingMembers, exist := Members.Get(t.Id)
+    if exist {
+        members, ok := existingMembers.([]*Actor)
+        if !ok {
+            return ErrTeamMembersNotFound
+        }
+        updatedMembers = append(members, &a)
+    } else {
+        updatedMembers = []*Actor{&a}
+    }
+    Members.Set(t.Id, updatedMembers)
 
-	// Members
-	existingMembers, mexist := Members.Get(t.Id)
-	if !mexist {
-		// If the members tree has no actors yet, initialize the slice.
-		existingMembers = []*Actor{}
-	} else {
-		members, ok := existingMembers.([]*Actor)
-		if !ok {
-			return ErrTeamMembersNotFound
-		}
-		existingMembers = members
-	}
-	
-	updatedMembers := append(existingMembers.([]*Actor), a)
-	Members.Set(t.Id, updatedMembers)
+    return nil
 
 }
 
-func (a Actor) RemoveActorFromTeam(t Team) (err errors) {
+func (a Actor) RemoveActorFromTeam(t Team) (err error) {
 	if ActorTeams.Size() != 0 {
 		existingActorTeams, exist := ActorTeams.Get(a.Id)
 		if exist {
 
 			var tindex int = -1
 			for i, team := range existingActorTeams.([]*Team) {
-				if t.id == team.id {
+				if t.Id == team.Id {
 					tindex = i
 					break
 				}
@@ -215,20 +207,20 @@ func (a Actor) RemoveActorFromTeam(t Team) (err errors) {
 				// Actor not found in the Members tree
 				return ErrActorIdNotFound 
 			}
-			Members.Set(team.Id, teamMembers)
+			Members.Set(t.Id, teamMembers)
 		}
 	}
 
 	return nil
 }
 
-func (a Actor) AssignActorToTask(wt WorkableTask) (err errors) {
+/*
+func (a Actor) AssignActorToTask(wt WorkableTask) (err error) {
 	if ActorTasks.Size() != 0 {
 		existingWorkableTasks, ok := ActorTasks.Get(a.Id)
 		if !ok {
 			existingWorkableTasks = []*WorkableTask{}
-		}
-		else {
+		} else {
 			tasks, ok := existingWorkableTasks([]*WorkableTask)
 			if !ok {
 				return ErrActorTasksNotFound
@@ -241,7 +233,7 @@ func (a Actor) AssignActorToTask(wt WorkableTask) (err errors) {
 	return nil
 } 
 
-func (a Actor) UnassignActorFromTask(wt WorkableTask) (err errors) {
+func (a Actor) UnassignActorFromTask(wt WorkableTask) (err error) {
 	if ActorTasks.Size() != 0 {
 		existingActorTasks, exist := ActorTasks.Get(a.Id)
 		if exist {
@@ -268,13 +260,12 @@ func (a Actor) UnassignActorFromTask(wt WorkableTask) (err errors) {
 	return nil
 } 
 
-func (a Actor) AssignActorToProject(wp WorkableProject) (err errors) {
+func (a Actor) AssignActorToProject(wp WorkableProject) (err error) {
 	if ActorProjects.Size() != 0 {
 		existingWorkableProjects, ok := ActorProjects.Get(a.Id)
 		if !ok {
 			existingWorkableProjects = []*WorkableProject{}
-		}
-		else {
+		} else {
 			projects, ok := existingWorkableProjects([]*WorkableProject)
 			if !ok {
 				return ErrActorProjectsNotFound
@@ -287,7 +278,7 @@ func (a Actor) AssignActorToProject(wp WorkableProject) (err errors) {
 	return nil
 } 
 
-func (a Actor) UnassignActorFromProject(wp WorkableProject) (err errors) {
+func (a Actor) UnassignActorFromProject(wp WorkableProject) (err error) {
 	if ActorProjects.Size() != 0 {
 		existingActorProjects, exist := ActorProjects.Get(a.Id)
 		if exist {
@@ -301,35 +292,35 @@ func (a Actor) UnassignActorFromProject(wp WorkableProject) (err errors) {
 				if tindex != -1 {
 					existingActorProjects = append(existingActorProjects.([]*WorkableProject)[:tindex], existingActorProjects.([]*WorkableProject)[tindex+1:]...)
 				} else {
-					// Actor projects not found in the ActorTasks tree
+					// Actor projects not found in the ActorProjects tree
 					return ErrActorProjectsNotFound 
 				}
 				ActorProjects.Set(a.Id, existingActorProjects)
 			}
 		} else {
-			// Actor projects not found in the ActorTasks tree
+			// Actor projects not found in the ActorProjects tree
 			return ErrActorProjectsNotFound 
 		}
 	}
 	return nil
 } 
-
+*/
 // getters
 
-func GetActorById(actorId string) (a Actor, err errors) {
+func GetActorById(actorId string) (a Actor, err error) {
 	if Actors.Size() != 0 {
 		actor, exist := Actors.Get(actorId)
 		if exist {
 			return actor.(Actor), nil
 		} else {
-			retrun nil, ErrActorIdNotFound
+			return nil, ErrActorIdNotFound
 		}
 
 	}
 	return nil, ErrActorIdNotFound
 }
 
-func GetAllActors()(actors string, err errors) {
+func GetAllActors()(actors string, err error) {
 	// implementation
 	var allActors []Actor
 
@@ -354,37 +345,97 @@ func GetAllActors()(actors string, err errors) {
 	return string(marshalledActors), nil
 }
 
-func (a Actor) GetActorTeams() (actorTeams string, err errors) {
-	actorTeams := []*Team
+func (a Actor) GetActorTeams() (aTeams string, err error) {
+	var actorTeams []*Team
 
-	if ActorTeams.Size() != 0 {
-		existingActorTeams, exist := ActorTeams.Get(a.Id)
+	existingActorTeams, exist := ActorTeams.Get(a.Id)
+	if !exist {
+        // No record in ActorTeams.
+        return "", ErrActorTeamsNotFound
+    }
+
+    // Assert that the returned interface{} is of type []*Team
+    teams, ok := existingActorTeams.([]*Team)
+    if !ok {
+        // Data was not of the expected type; handle the error appropriately.
+        return "", ErrActorTeamsIncorrectType
+    }
+    actorTeams = teams
+
+    // Check if there are any teams before marshalling
+    if len(actorTeams) == 0 {
+        return "", ErrActorTeamsNotFound
+    }
+
+    // Create a TeamsObject and marshal into JSON
+    teamsObject := &TeamsObject{
+        Teams: actorTeams,
+    }
+    marshalledTeams, err := teamsObject.MarshalJSON()
+    if err != nil {
+        return "", err
+    }
+
+    return string(marshalledTeams), nil
+}
+
+func (a Actor) GetActorTasks() (actorTasks string, err error) {
+	if ActorTasks.Size() != 0 {
+		existingWorkableTasks, exist := ActorTasks.Get(a.Id)
 		if !exist {
-			// if there's no record in ActorTeams, we don't have to return anything
-			return nil, ErrActorTeamsNotFound
-		} else {
-			actorTeams = existingActorTeams
+			return "", ErrActorTasksNotFound
+		}
+
+		// Perform a type assertion to convert interface{} to []*WorkableTask.
+		tasksPtrs, ok := existingWorkableTasks.([]*WorkableTask)
+		if !ok {
+			return "", ErrActorTasksIncorrectType
+		}
+
+		// Convert []*WorkableTask to []Task
+		tasks := make([]zentasktic.Task, len(tasksPtrs))
+		for i, wt := range tasksPtrs {
+			tasks[i] = wt.Task 
+		}
+
+		// Check if there are actually any tasks in the slice.
+		if len(tasks) == 0 {
+			return "", ErrActorTasksNotFound
+		}
+
+		// Create a TasksObject and marshal into JSON
+		tasksObject := zentasktic.TasksObject{Tasks: tasks}
+		marshaledTasks, err := tasksObject.MarshalJSON()
+		if err != nil {
+			return "", err 
+		}
+
+		// Return the JSON string and nil error on success.
+		return string(marshaledTasks), nil
+	}
+
+	return "", ErrActorTasksNotFound
+}
+/*
+func (a Actor) GetActorProjects() (actorProjects string, err error) {
+	if ActorProjects.Size() != 0 {
+		existingWorkableProjects, exist := ActorProjects.Get(a.Id)
+		if !exist {
+			return "", ErrActorProjectsNotFound
+		} else {	
+			tasks, ok := existingWorkableProjects([]*WorkableProject)
+			if !ok {
+				return ErrActorProjectsNotFound
+			}
+			projectsObject := zentasktic.ProjectsObject{Projects: projects}
+			marshaledProjects, err := projectsObject.MarshalJSON()
+			if err != nil {
+				return "", err
+			}
+
+			return marshaledProjects, nil
 		}
 	}
 
-	if actorTeams.Size() != 0 {
-		teamsObject := &TeamsObject {
-			Teams: actorTeams,
-		}
-		marshalledTeams, merr := teamsObject.MarshalJSON()
-		if merr != nil {
-			return "", merr
-		} 
-		return string(marshalledTeams), nil
-	}
-
-	return "", ErrActorTeamsNotFound
-}
-
-func (a Actor) GetActorTasks() (actorTasks string, err errors) {
-
-}
-
-func (a Actor) GetActorProjects() (actorProjects string, err errors) {
-
-}
+	return "", ErrActorProjectsNotFound
+}*/

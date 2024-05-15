@@ -1,9 +1,18 @@
+package zentasktic_project
+
+import (
+	"strconv"
+	"bytes"
+	"errors"
+	"std"
+)
+
 type ActorsObject struct {
 	Actors	[]Actor
 }
 
 type TeamsObject struct {
-	Teams	[]Team
+	Teams	[]*Team
 }
 
 func (a Actor) MarshalJSON() ([]byte, error) {
@@ -21,7 +30,7 @@ func (a Actor) MarshalJSON() ([]byte, error) {
 	b.WriteString(`",`)
 
 	b.WriteString(`"actorAddress":"`)
-	b.WriteString(a.Address)
+	b.WriteString(string(a.Address))
 	b.WriteString(`"`)
 
 	b.WriteByte('}')

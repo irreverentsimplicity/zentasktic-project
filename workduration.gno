@@ -32,23 +32,23 @@ var _ Workable = &WorkableTask{}
 var _ Workable = &WorkableProject{}
 
 type WorkDuration struct {
-	Id				string `json:"workHourId"`
+	Id				string `json:"workDurationId"`
     ObjectId 		string `json:"objectId"`
     ObjectType      string `json:"objectType"` // Task, Project
 	Duration  		time.Duration `json:"workDuration"`
 	Workable   		Workable      `json:"-"`
 }
 
-var {
+var (
 	WorkDurations avl.Tree // wd.Id -> wd
-}
+)
 
-func (wd WorkDuration) AddWorkDuration() (err errors) { 
+func (wd WorkDuration) AddWorkDuration() (err error) { 
 	WorkDurations.Set(wd.Id, wd)
 	return nil
 }
 
-func (wd WorkDuration) RemoveWorkDuration() (err errors) { 
+func (wd WorkDuration) RemoveWorkDuration() (err error) { 
 	// implementation
 	existingWorkDuration := WorkDuration{}
 	if WorkDurations.Size() != 0 {
@@ -60,14 +60,14 @@ func (wd WorkDuration) RemoveWorkDuration() (err errors) {
 	
 	_, removed := WorkDurations.Remove(existingWorkDuration.Id)
 	if !removed {
-		return ErrTaskNotRemoved
+		return ErrWorkDurationNotRemoved
 	}
 	return nil
 }
 
 // getters
 
-func GetWorkDurationByOjectId(objectId string, objectType string) (wd WorkDuration, err errors) {
+func GetWorkDurationByOjectId(objectId string, objectType string) (wd WorkDuration, err error) {
 	// implementation
 	workDuration := WorkDuration{}
 
@@ -85,6 +85,21 @@ func GetWorkDurationByOjectId(objectId string, objectType string) (wd WorkDurati
 	return workDuration, nil
 }
 
-func GetAllWorkDurations() (workDurations []WorkDuration, err errors){
+func GetAllWorkDurations() (workDurations []WorkDuration, err error){
+	// implementation
+	var allWorkDurations []WorkDuration
 
+	// Iterate over the WorkDurations AVL tree to collect all WorkDurations objects.
+	if WorkDurations.Size() == 0 {
+		return nil, ErrWorkDurationsEmpty
+	} else {
+		WorkDurations.Iterate("", "", func(key string, value interface{}) bool {
+			if workDuration, ok := value.(WorkDuration); ok {
+				allWorkDurations = append(allWorkDurations, workDuration)
+			}
+			return false // Continue iteration until all nodes have been visited.
+		})
+	}
+
+	return allWorkDurations, nil
 }

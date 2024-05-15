@@ -16,24 +16,24 @@ type RewardsPoint struct {
     Status			string `json:"rewardsPointStatus"`            // assigned / released / unused, etc
 }
 
-var {
+var (
 	RewardPoints avl.Tree // rp.Id -> rp
+)
+/*
+func (rp RewardsPoint) AddRewardsPoints() (err error) { 
+
 }
 
-func (rp RewardsPoint) AddRewardsPoints() (err errors) { 
-
-}
-
-func (rp RewardsPoint) RemoveRewardsPoints() (err errors) { 
+func (rp RewardsPoint) RemoveRewardsPoints() (err error) { 
 
 }
 
 // getters
 
-func GetRewardsPointsByOjectId(objectId string, objectType string) (rp RewardsPoint, err errors) {
+func GetRewardsPointsByOjectId(objectId string, objectType string) (rp RewardsPoint, err error) {
 
 }
 
-func GetAllRewardsPoints() (rewardsPoints int, err errors){
+func GetAllRewardsPoints() (rewardsPoints int, err error){
 
-}
+}*/
