@@ -214,7 +214,6 @@ func (a Actor) RemoveActorFromTeam(t Team) (err error) {
 	return nil
 }
 
-
 func (a Actor) AssignActorToTask(wt *WorkableTask) error {
     if ActorTasks.Size() != 0 {
         existingWorkableTasks, ok := ActorTasks.Get(a.Id)
@@ -266,7 +265,6 @@ func (a Actor) UnassignActorFromTask(wt *WorkableTask) error {
     }
     return nil
 }
-
 
 func (a Actor) AssignActorToProject(wp *WorkableProject) (err error) {
 	if ActorProjects.Size() != 0 {

@@ -99,96 +99,110 @@ func (t Team) EditTeam() (err error) {
 	Teams.Set(t.Id, t)
 	return nil
 }
-/*
-func (t Team) AssignTeamToTask(wt WorkableTask) (err error) {
+
+func (t Team) AssignTeamToTask(wt *WorkableTask) (err error) {
 	if TeamTasks.Size() != 0 {
-		existingWorkableTasks, ok := TeamTasks.Get(t.Id)
-		if !ok {
-			existingWorkableTasks = []*WorkableTask{}
-		} else {
-			tasks, ok := existingWorkableTasks([]*WorkableTask)
-			if !ok {
-				return ErrTeamTasksNotFound
-			}
-			existingWorkableTasks = tasks
-		}
-		updatedTasks := append(existingWorkableTasks.([]*WorkableTask), wt)
-		TeamTasks.Set(t.Id, updatedTasks)
-	}
-	return nil
+        existingWorkableTasks, ok := TeamTasks.Get(t.Id)
+        if !ok {
+            existingWorkableTasks = []*WorkableTask{}
+        }
+        
+        tasks, ok := existingWorkableTasks.([]*WorkableTask)
+        if !ok {
+            return ErrTeamTasksNotFound
+        }
+        
+        updatedTasks := append(tasks, wt)
+        TeamTasks.Set(t.Id, updatedTasks)
+    } else {
+        TeamTasks.Set(t.Id, []*WorkableTask{wt})
+    }
+    return nil
 } 
 
-func (t Team) UnassignTeamFromTask(wt WorkableTask) (err error) {
+func (t Team) UnassignTeamFromTask(wt *WorkableTask) (err error) {
 	if TeamTasks.Size() != 0 {
-		existingTeamTasks, exist := TeamTasks.Get(t.Id)
-		if exist {
+        existingTeamTasks, exist := TeamTasks.Get(t.Id)
+        if !exist {
+            return ErrTeamTasksNotFound
+        }
 
-			var tindex int = -1
-			for i, task := range existingTeamTasks.([]*WorkableTask) {
-				if wt.id == task.id {
-					tindex = i
-					break
-				}
-				if tindex != -1 {
-					existingTeamTasks = append(existingTeamTasks.([]*WorkableTask)[:tindex], existingTeamTasks.([]*WorkableTask)[tindex+1:]...)
-				} else {
-					// Team tasks not found in the TeamTasks tree
-					return ErrTeamTasksNotFound 
-				}
-				TeamTasks.Set(t.Id, existingTeamTasks)
-			}
-		} else {
-			// Team tasks not found in the TeamTasks tree
-			return ErrTeamTasksNotFound 
-		}
-	}
-	return nil
+        tasks, ok := existingTeamTasks.([]*WorkableTask)
+        if !ok {
+            return ErrTeamTasksNotFound
+        }
+
+        var tindex int = -1
+        for i, task := range tasks {
+            if wt.Id == task.Id {
+                tindex = i
+                break
+            }
+        }
+
+        if tindex != -1 {
+            updatedTasks := append(tasks[:tindex], tasks[tindex+1:]...)
+            TeamTasks.Set(t.Id, updatedTasks)
+        } else {
+            return ErrTeamTasksNotFound
+        }
+    } else {
+        return ErrTeamTasksNotFound
+    }
+    return nil
 } 
 
-func (t Team) AssignTeamToProject(wp WorkableProject) (err error) {
+func (t Team) AssignTeamToProject(wp *WorkableProject) (err error) {
 	if TeamProjects.Size() != 0 {
-		existingWorkableProjects, ok := TeamProjects.Get(t.Id)
-		if !ok {
-			existingWorkableProjects = []*WorkableProject{}
-		} else {
-			projects, ok := existingWorkableProjects([]*WorkableProject)
-			if !ok {
-				return ErrTeamProjectsNotFound
-			}
-			existingWorkableProjects = projects
-		}
-		updatedProjects := append(existingWorkableProjects.([]*WorkableProject), wp)
-		TeamProjects.Set(t.Id, updatedProjects)
-	}
-	return nil
+        existingWorkableProjects, ok := TeamProjects.Get(t.Id)
+        if !ok {
+            existingWorkableProjects = []*WorkableProject{}
+        }
+        
+        projects, ok := existingWorkableProjects.([]*WorkableProject)
+        if !ok {
+            return ErrTeamProjectsNotFound
+        }
+        
+        updatedProjects := append(projects, wp)
+        TeamProjects.Set(t.Id, updatedProjects)
+    } else {
+        TeamProjects.Set(t.Id, []*WorkableProject{wp})
+    }
+    return nil
 } 
 
-func (t Team) UnassignTeamFromProject(wp WorkableProject) (err error) {
+func (t Team) UnassignTeamFromProject(wp *WorkableProject) (err error) {
 	if TeamProjects.Size() != 0 {
-		existingTeamProjects, exist := TeamProjects.Get(t.Id)
-		if exist {
+        existingTeamProjects, exist := TeamProjects.Get(t.Id)
+        if !exist {
+            return ErrTeamProjectsNotFound
+        }
 
-			var tindex int = -1
-			for i, project := range existingTeamProjects.([]*WorkableProject) {
-				if wp.id == project.id {
-					tindex = i
-					break
-				}
-				if tindex != -1 {
-					existingTeamProjects = append(existingTeamProjects.([]*WorkableProject)[:tindex], existingTeamProjects.([]*WorkableProject)[tindex+1:]...)
-				} else {
-					// Team projects not found in the TeamProjects tree
-					return ErrTeamProjectsNotFound 
-				}
-				TeamProjects.Set(t.Id, existingActorProjects)
-			}
-		} else {
-			// Team projects not found in the TeamProjects tree
-			return ErrTeamProjectsNotFound 
-		}
-	}
-	return nil
-} */
+        projects, ok := existingTeamProjects.([]*WorkableProject)
+        if !ok {
+            return ErrTeamProjectsNotFound
+        }
+
+        var tindex int = -1
+        for i, project := range projects {
+            if wp.Id == project.Id {
+                tindex = i
+                break
+            }
+        }
+
+        if tindex != -1 {
+            updatedProjects := append(projects[:tindex], projects[tindex+1:]...)
+            TeamProjects.Set(t.Id, updatedProjects)
+        } else {
+            return ErrTeamProjectsNotFound
+        }
+    } else {
+        return ErrTeamProjectsNotFound
+    }
+    return nil
+} 
 
 // getters
 
