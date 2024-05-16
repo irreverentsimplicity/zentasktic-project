@@ -12,6 +12,8 @@ var (
 	ErrActorTeamsNotFound					= errors.New("Could not find actor teams")
 	ErrActorTeamsIncorrectType				= errors.New("Incorrect type for ActorTeams")
 	ErrActorTasksIncorrectType				= errors.New("Incorrect type for ActorTasks")
+	ErrTeamTasksIncorrectType				= errors.New("Incorrect type for TeamTasks")
+	ErrTeamProjectsIncorrectType			= errors.New("Incorrect type for TeamProjects")
 	ErrActorProjectsIncorrectType			= errors.New("Incorrect type for ActorProjects")
 	ErrActorTeamsNotRemoved					= errors.New("Actor teams could not be removed")
 	ErrActorTasksNotFound					= errors.New("Could not find actor tasks")

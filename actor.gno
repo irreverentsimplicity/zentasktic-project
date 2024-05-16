@@ -466,5 +466,5 @@ func (a Actor) GetActorProjects() (actorProjects string, err error) {
 		return string(marshaledProjectss), nil
 	}
 
-	return "", ErrActorTasksNotFound
+	return "", ErrActorProjectsNotFound
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"gno.land/p/demo/avl"
+	"gno.land/p/demo/zentasktic"
 )
 
 type Team struct {
@@ -246,10 +247,82 @@ func GetAllTeams()(teams string, err error) {
 }
 
 /*
-func (t Team) GetTeamTasks() (teamTasks string, err error) {
+func (t Team) GetTeamMembers() (tMembers string, err error) {
 
+}*/
+
+func (t Team) GetTeamTasks() (teamTasks string, err error) {
+	if TeamTasks.Size() != 0 {
+		existingWorkableTasks, exist := TeamTasks.Get(t.Id)
+		if !exist {
+			return "", ErrTeamTasksNotFound
+		}
+
+		// Perform a type assertion to convert interface{} to []*WorkableTask.
+		tasksPtrs, ok := existingWorkableTasks.([]*WorkableTask)
+		if !ok {
+			return "", ErrTeamTasksIncorrectType
+		}
+
+		// Convert []*WorkableTask to []Task
+		tasks := make([]zentasktic.Task, len(tasksPtrs))
+		for i, wt := range tasksPtrs {
+			tasks[i] = wt.Task 
+		}
+
+		// Check if there are actually any tasks in the slice.
+		if len(tasks) == 0 {
+			return "", ErrTeamTasksNotFound
+		}
+
+		// Create a TasksObject and marshal into JSON
+		tasksObject := zentasktic.TasksObject{Tasks: tasks}
+		marshaledTasks, err := tasksObject.MarshalJSON()
+		if err != nil {
+			return "", err 
+		}
+
+		// Return the JSON string and nil error on success.
+		return string(marshaledTasks), nil
+	}
+
+	return "", ErrTeamTasksNotFound
 }
 
 func (t Team) GetTeamProjects() (teamProjects string, err error) {
+	if TeamProjects.Size() != 0 {
+		existingWorkableProjects, exist := TeamProjects.Get(t.Id)
+		if !exist {
+			return "", ErrTeamProjectsNotFound
+		}
 
-}*/
+		// Perform a type assertion to convert interface{} to []*WorkableProject.
+		projectPtrs, ok := existingWorkableProjects.([]*WorkableProject)
+		if !ok {
+			return "", ErrTeamProjectsIncorrectType
+		}
+
+		// Convert []*WorkableProject to []Project
+		projects := make([]zentasktic.Project, len(projectPtrs))
+		for i, wp := range projectPtrs {
+			projects[i] = wp.Project 
+		}
+
+		// Check if there are actually any projects in the slice.
+		if len(projects) == 0 {
+			return "", ErrTeamProjectsNotFound
+		}
+
+		// Create a ProjectsObject and marshal into JSON
+		projectsObject := zentasktic.ProjectsObject{Projects: projects}
+		marshaledProjectss, err := projectsObject.MarshalJSON()
+		if err != nil {
+			return "", err 
+		}
+
+		// Return the JSON string and nil error on success.
+		return string(marshaledProjectss), nil
+	}
+
+	return "", ErrTeamProjectsNotFound
+}
