@@ -36,16 +36,15 @@ func (t Team) AddTeam() (err error) {
 }
 
 func (t Team) RemoveTeam() (err error) {
-	// implementation
-	existingTeam := Team{}
+	// Check if the team exists
 	if Teams.Size() != 0 {
-		existingTeam, exist := Teams.Get(t.Id)
+		_, exist := Teams.Get(t.Id)
 		if !exist {
 			return ErrTeamIdNotFound
 		}
 	}
-	
-	// if team has members, remove it from the Members avl.Tree
+
+	// If the team has members, remove it from the Members AVL tree
 	if Members.Size() != 0 {
 		existingTeamMembers, exist := Members.Get(t.Id)
 		if exist {
@@ -56,7 +55,7 @@ func (t Team) RemoveTeam() (err error) {
 		}
 	}
 
-	// if Team has tasks assigned, unassign from them
+	// If the team has tasks assigned, unassign from them
 	if TeamTasks.Size() != 0 {
 		existingTeamTasks, exist := TeamTasks.Get(t.Id)
 		if exist {
@@ -67,7 +66,7 @@ func (t Team) RemoveTeam() (err error) {
 		}
 	}
 
-	// if team has projects assigned, unassign from them
+	// If the team has projects assigned, unassign from them
 	if TeamProjects.Size() != 0 {
 		existingTeamProjects, exist := TeamProjects.Get(t.Id)
 		if exist {
@@ -78,14 +77,42 @@ func (t Team) RemoveTeam() (err error) {
 		}
 	}
 
-	// remove team
+	// Remove the team from ActorTeams for all actor IDs
+	ActorTeams.Iterate("", "", func(actorId string, value interface{}) bool {
+		actorTeams, ok := value.([]*Team)
+		if !ok {
+			return false // Continue iteration
+		}
+
+		var tindex int = -1
+		for i, team := range actorTeams {
+			if t.Id == team.Id {
+				tindex = i
+				break
+			}
+		}
+
+		if tindex != -1 {
+			actorTeams = append(actorTeams[:tindex], actorTeams[tindex+1:]...)
+			if len(actorTeams) == 0 {
+				ActorTeams.Remove(actorId)
+			} else {
+				ActorTeams.Set(actorId, actorTeams)
+			}
+		}
+
+		return false // Continue iteration
+	})
+
+	// Remove the team from the Teams AVL tree
 	_, removed := Teams.Remove(t.Id)
 	if !removed {
 		return ErrTeamNotRemoved
 	}
-	return nil
 
+	return nil
 }
+
 
 func (t Team) EditTeam() (err error) {
 	// implementation, get team by Id and replace the object
@@ -245,11 +272,6 @@ func GetAllTeams()(teams string, err error) {
 	} 
 	return string(marshalledTeams), nil
 }
-
-/*
-func (t Team) GetTeamMembers() (tMembers string, err error) {
-
-}*/
 
 func (t Team) GetTeamTasks() (teamTasks string, err error) {
 	if TeamTasks.Size() != 0 {

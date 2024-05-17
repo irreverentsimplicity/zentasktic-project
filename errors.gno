@@ -29,5 +29,8 @@ var (
 	ErrTeamMembersNotFound					= errors.New("Team members not found")
 	ErrActorProjectsNotFound				= errors.New("Could not find actor projects")
 	ErrTeamProjectsNotFound					= errors.New("Could not find team projects")
+	ErrRewardsPointIdAlreadyExists			= errors.New("A rewards point entry with the same id already exists")
+	ErrRewardsPointIdNotFound				= errors.New("A rewards point entry with this id could not be found")
+	ErrRewardsPointNotRemoved				= errors.New("The rewards point entry was not removed")
 	
 )

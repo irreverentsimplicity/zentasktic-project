@@ -15,6 +15,10 @@ type TeamsObject struct {
 	Teams	[]*Team
 }
 
+type RewardsPointsObject struct {
+	RewardsPoints	[]*RewardsPoint
+}
+
 func (a Actor) MarshalJSON() ([]byte, error) {
 
 	var b bytes.Buffer
@@ -86,7 +90,7 @@ func (t Team) MarshalJSON() ([]byte, error) {
 		}
 	}
 
-	b.WriteString(`],`)
+	b.WriteString(`]`)
 
 	b.WriteByte('}')
 
@@ -105,6 +109,57 @@ func (to TeamsObject) MarshalJSON() ([]byte, error) {
 		teamJSON, cerr := team.MarshalJSON()
 		if cerr == nil {
 			b.WriteString(string(teamJSON))
+		}
+	}
+
+	b.WriteString(`]}`)
+
+	return b.Bytes(), nil
+}
+
+func (rp RewardsPoint) MarshalJSON() ([]byte, error) {
+
+	var b bytes.Buffer
+	
+	b.WriteByte('{')
+
+	b.WriteString(`"rewardsPointId":"`)
+	b.WriteString(rp.Id)
+	b.WriteString(`",`)
+
+	b.WriteString(`"objectId":"`)
+	b.WriteString(rp.ObjectId)
+	b.WriteString(`",`)
+
+	b.WriteString(`"objectType":"`)
+	b.WriteString(rp.ObjectType)
+	b.WriteString(`",`)
+
+	b.WriteString(`"rewardsPointsAmount":"`)
+	b.WriteString(string(rp.Amount))
+	b.WriteString(`",`)
+
+	b.WriteString(`"rewardsPointsStatus":"`)
+	b.WriteString(rp.Status)
+	b.WriteString(`"`)
+
+	b.WriteByte('}')
+
+	return b.Bytes(), nil
+}
+
+func (ro RewardsPointsObject) MarshalJSON() ([]byte, error) {
+	var b bytes.Buffer
+
+	b.WriteString(`{"rewardsPoints":[`)
+	
+	for i, rewardsPoint := range ro.RewardsPoints {
+		if i > 0 {
+			b.WriteString(`,`)
+		}
+		rewardsPointJSON, cerr := rewardsPoint.MarshalJSON()
+		if cerr == nil {
+			b.WriteString(string(rewardsPointJSON))
 		}
 	}
 

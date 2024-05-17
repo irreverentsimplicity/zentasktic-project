@@ -163,6 +163,18 @@ func (a Actor) AddActorToTeam(t Team) (err error) {
     }
     Members.Set(t.Id, updatedMembers)
 
+	// Update the Members field of the Team struct
+	t.Members = updatedMembers
+
+	// Update the Team in the ActorTeams map to reflect the added member
+	for i, team := range updatedTeams {
+		if team.Id == t.Id {
+			updatedTeams[i] = &t
+			break
+		}
+	}
+	ActorTeams.Set(a.Id, updatedTeams)
+
     return nil
 
 }
@@ -171,43 +183,60 @@ func (a Actor) RemoveActorFromTeam(t Team) (err error) {
 	if ActorTeams.Size() != 0 {
 		existingActorTeams, exist := ActorTeams.Get(a.Id)
 		if exist {
-
 			var tindex int = -1
-			for i, team := range existingActorTeams.([]*Team) {
+			teams := existingActorTeams.([]*Team)
+			for i, team := range teams {
 				if t.Id == team.Id {
 					tindex = i
 					break
 				}
-				if tindex != -1 {
-					existingActorTeams = append(existingActorTeams.([]*Team)[:tindex], existingActorTeams.([]*Team)[tindex+1:]...)
-				} else {
-					// Actor not found in the Members tree
-					return ErrTeamIdNotFound 
-				}
-				ActorTeams.Set(a.Id, existingActorTeams)
+			}
+
+			if tindex != -1 {
+				teams = append(teams[:tindex], teams[tindex+1:]...)
+				ActorTeams.Set(a.Id, teams)
+			} else {
+				// Team ID not found in the actor's teams
+				return ErrTeamIdNotFound
 			}
 		}
 	}
 
-	// iterate over Members and remove Actor from there too
+	// Iterate over Members and remove Actor from there too
 	if Members.Size() != 0 {
 		teamMembers, membersExist := Members.Get(t.Id)
 		if membersExist {
+			members, ok := teamMembers.([]*Actor)
+			if !ok {
+				return ErrActorIdNotFound
+			}
+
 			var index int = -1
-			for m, teamActor := range teamMembers.([]*Actor) {
+			for m, teamActor := range members {
 				if a.Id == teamActor.Id {
 					index = m
 					break
 				}
 			}
+
 			// If the actor was found, we remove it from the slice.
 			if index != -1 {
-				teamMembers = append(teamMembers.([]*Actor)[:index], teamMembers.([]*Actor)[index+1:]...)
+				members = append(members[:index], members[index+1:]...)
+				Members.Set(t.Id, members)
+
+				// Update the Members field of the Team struct in ActorTeams
+				existingActorTeams, _ := ActorTeams.Get(a.Id)
+				teams, _ := existingActorTeams.([]*Team)
+				for _, team := range teams {
+					if team.Id == t.Id {
+						team.Members = members
+						break
+					}
+				}
+				ActorTeams.Set(a.Id, teams)
 			} else {
-				// Actor not found in the Members tree
-				return ErrActorIdNotFound 
+				return ErrActorIdNotFound
 			}
-			Members.Set(t.Id, teamMembers)
 		}
 	}
 
