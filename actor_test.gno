@@ -7,6 +7,14 @@ import (
 	"gno.land/p/demo/zentasktic"
 )
 
+var ztm *zentasktic.ZTaskManager
+var zpm *zentasktic.ZProjectManager
+
+func init() {
+    ztm = zentasktic.NewZTaskManager()
+    zpm = zentasktic.NewZProjectManager()
+}
+
 func Test_AddActor(t *testing.T) {
 
     actor := Actor{Id: "1", Name: "Developer", Address: "g1jvsnur7haahze6n6z3gzfdzu5yelr9rj3dajs7",}
@@ -323,4 +331,71 @@ func Test_RemoveActorFromTeam(t *testing.T) {
 	})
 }
 
+func Test_AssignActorToTask(t *testing.T) {
+    actor, _ := GetActorById("1")
+	task := WorkableTask{Task: zentasktic.Task{
+        Id:        "task1",
+        ProjectId: "project1",
+        ContextId: "context1",
+        RealmId:   "realm1",
+        Body:      "This is a task body",
+        Due:       "2023-12-31",
+        Alert:     "2023-12-30",
+    },}
+	project := WorkableProject{Project: zentasktic.Project{
+        Id:        "project1",
+        ContextId: "context1",
+        RealmId:   "realm1",
+        Tasks:     []zentasktic.Task{},
+        Body:      "This is the project body",
+        Due:       "2024-12-31",
+    },}
 
+	// Test assigning a task to an actor with no existing tasks
+	t.Run("Assign task to actor with no existing tasks", func(t *testing.T) {
+		ztm.AddTask(task.Task)
+        zpm.AddProject(project.Project)
+		err := actor.AssignActorToTask(&task)
+		if err != nil {
+			t.Errorf("Failed to assign task: %v", err)
+		}
+
+		existingTasks, exist := ActorTasks.Get(actor.Id)
+		if !exist {
+			t.Errorf("Expected tasks to be assigned to actor")
+		}
+	})
+}
+
+func Test_AssignActorToProject(t *testing.T) {
+    actor, _ := GetActorById("1")
+    /*
+    project := WorkableProject{Project: zentasktic.Project{
+        Id:        "project1",
+        ContextId: "context1",
+        RealmId:   "realm1",
+        Tasks:     []zentasktic.Task{},
+        Body:      "This is the project body",
+        Due:       "2024-12-31",
+    },}
+    zpm.AddProject(project.Project)*/
+    wproject, err := zpm.GetProjectById("project1")
+    if err != nil {
+        t.Fatalf("Failed to get project: %v", err)
+    }
+
+	// Test assigning a project to an actor with no existing projects
+	t.Run("Assign project to actor with no existing projects", func(t *testing.T) {
+		
+        wp := WorkableProject{Project: wproject}
+		err := actor.AssignActorToProject(&wp)
+		if err != nil {
+			t.Errorf("Failed to assign task: %v", err)
+		}
+
+		existingProjects, exist := ActorProjects.Get(actor.Id)
+		if !exist {
+			t.Errorf("Expected projects to be assigned to actor")
+		}
+	})
+}
