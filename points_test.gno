@@ -80,20 +80,119 @@ func Test_RemoveRwardsPoints(t *testing.T) {
 		}
 	})
 }
-/*
-func Test_GetAllActors(t *testing.T) {
+
+func Test_GetRewardsPointsByOjectId(t *testing.T) {
+
+	point := RewardsPoint{Id: "1", ObjectId: "task1", ObjectType: "task", Amount: std.Coins{{Denom: "ugnot",  Amount: 100}}, Status: "Disbursed"}
 	
-	t.Run("With actors", func(t *testing.T) {
-		actors, err := GetAllActors()
-		if err != nil {
-			t.Errorf("Unexpected error: %v", err)
+	result, err := GetRewardsPointsByOjectId("task1", "task")
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if result.Id != point.Id || result.Status != point.Status {
+		t.Errorf("Expected %v, got %v", point, result)
+	}
+
+	// Test with non-existing data
+	result, err = GetRewardsPointsByOjectId("nonexistent", "task")
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if (result != RewardsPoint{}) {
+		t.Errorf("Expected empty RewardsPoint, got %v", result)
+	}
+}
+
+func Test_GetAllRewardsPoints(t *testing.T){
+
+	// Initialize test data
+	point1 := RewardsPoint{
+		Id:         "1",
+		ObjectId:   "task1",
+		ObjectType: "task",
+		Amount:     std.Coins{{Denom: "token", Amount: 20}},
+		Status:     "Disbursed",
+	}
+	point2 := RewardsPoint{
+		Id:         "2",
+		ObjectId:   "task2",
+		ObjectType: "task",
+		Amount:     std.Coins{{Denom: "token", Amount: 30}},
+		Status:     "Assigned",
+	}
+
+	point1.AddRewardsPoints()
+	point2.AddRewardsPoints()
+
+	// Test the function
+	result, err := GetAllRewardsPoints()
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	// Define the expected result
+	expectedResult := `{"rewardsPoints":[{"rewardsPointId":"1","objectId":"task1","objectType":"task","rewardsPointsAmount":"100ugnot","rewardsPointsStatus":"Disbursed"},{"rewardsPointId":"2","objectId":"task2","objectType":"task","rewardsPointsAmount":"30token","rewardsPointsStatus":"Assigned"}]}`
+	if result != expectedResult {
+		t.Errorf("Expected %v, got %v", expectedResult, result)
+	}
+
+	// Test with no rewards points
+	point1.RemoveRewardsPoints()
+	point2.RemoveRewardsPoints()
+	
+	result, err = GetAllRewardsPoints()
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+	if result != `{"rewardsPoints":[]}` {
+		t.Errorf("Expected empty rewards points, got %v", result)
+	}
+}
+
+func Test_GetTotalRewardsPoints(t *testing.T) {
+	
+	// Add test data to the RewardsPoints tree.
+	rewardsPoint1 := RewardsPoint{
+		Id:         "1",
+		ObjectId:   "task1",
+		ObjectType: "task",
+		Amount:     std.Coins{{Denom: "token", Amount: 10}},
+		Status:     "Disbursed",
+	}
+	rewardsPoint2 := RewardsPoint{
+		Id:         "2",
+		ObjectId:   "task2",
+		ObjectType: "task",
+		Amount:     std.Coins{{Denom: "token", Amount: 20}},
+		Status:     "Disbursed",
+	}
+
+	rewardsPoint1.AddRewardsPoints()
+	rewardsPoint2.AddRewardsPoints()
+
+	// Call the GetTotalRewardsPoints function.
+	totalRewardsPoints, err := GetTotalRewardsPoints()
+	if err != nil {
+		t.Errorf("Failed to get total rewards points: %v", err)
+	}
+
+	// Check if the total rewards points is correct.
+	expectedTotal := std.Coins{{Denom: "token", Amount: 30}}
+	if !totalRewardsPoints.IsEqual(expectedTotal) {
+		t.Errorf("Expected total rewards points to be %v, but got %v", totalRewardsPoints, expectedTotal)
+	}
+}
+
+func (coins std.Coins) IsEqual(other std.Coins) bool {
+	if len(coins) != len(other) {
+		return false
+	}
+	for i := range coins {
+		if coins[i].Denom != other[i].Denom || coins[i].Amount != other[i].Amount {
+			return false
 		}
-		if actors == "" {
-			t.Errorf("Expected JSON array of actors, got empty string")
-		}
-		expected := `{"actors":[{"actorId":"1","actorName":"Updated Name","actorAddress":"newAddress"}]}`
-		if actors != expected {
-			t.Errorf("Expected %s, got %s", expected, actors)
-		}
-	})
-}*/
+	}
+	return true
+}

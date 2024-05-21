@@ -83,10 +83,6 @@ func GetRewardsPointsByOjectId(objectId string, objectType string) (rp RewardsPo
 
 	return rewardsPoints, nil
 }
-/*
-func GetRewardsPointsByStatus(status string)(rewardsPoints string, err error){
-
-}*/
 
 func GetAllRewardsPoints() (rewardsPoints string, err error){
 	// implementation
@@ -100,7 +96,7 @@ func GetAllRewardsPoints() (rewardsPoints string, err error){
 		return false // Continue iteration until all nodes have been visited.
 	})
 
-	// Create a RewardsPontsObject with all collected team.
+	// Create a RewardsPontsObject with all collected points.
 	rewardsPointsObject := &RewardsPointsObject{
 		RewardsPoints: allRewardsPoints,
 	}
@@ -113,7 +109,7 @@ func GetAllRewardsPoints() (rewardsPoints string, err error){
 	return string(marshalledRwardsPoints), nil
 }
 
-func GetTotalRewardsPoints() (rewardsPoints int, err error){
+func () (totalAmount std.Coins, err error){
 	total := std.Coins{}
 
 	// Iterate over the RewardPoints AVL tree to find matching ObjectId and ObjectType records.
@@ -124,5 +120,5 @@ func GetTotalRewardsPoints() (rewardsPoints int, err error){
 		return false // Continue iteration until all nodes have been visited.
 	})
 
-	return total.(int), nil
+	return total, nil
 }

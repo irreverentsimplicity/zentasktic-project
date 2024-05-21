@@ -136,7 +136,7 @@ func (rp RewardsPoint) MarshalJSON() ([]byte, error) {
 	b.WriteString(`",`)
 
 	b.WriteString(`"rewardsPointsAmount":"`)
-	b.WriteString(string(rp.Amount))
+	b.WriteString(string(rp.Amount.String()))
 	b.WriteString(`",`)
 
 	b.WriteString(`"rewardsPointsStatus":"`)
