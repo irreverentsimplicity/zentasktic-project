@@ -48,6 +48,18 @@ func (wd WorkDuration) AddWorkDuration() (err error) {
 	return nil
 }
 
+func (wd WorkDuration) EditWorkDuration() (err error) { 
+	existingWorkDuration := WorkDuration{}
+	if WorkDurations.Size() != 0 {
+		existingWorkDuration, exist := WorkDurations.Get(wd.Id)
+		if !exist {
+			return ErrWorkDurationNotFound
+		}
+	}
+	WorkDurations.Set(wd.Id, wd)
+	return nil
+}
+
 func (wd WorkDuration) RemoveWorkDuration() (err error) { 
 	// implementation
 	existingWorkDuration := WorkDuration{}

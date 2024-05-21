@@ -13,7 +13,7 @@ type RewardsPoint struct {
     ObjectId 		string `json:"objectId"`
     ObjectType      string `json:"objectType"`
 	Amount  		std.Coins `json:"rewardsPointAmount"`
-    Status			string `json:"rewardsPointStatus"`            // assigned / released / unused, etc
+    Status			string `json:"rewardsPointStatus"`            // assigned / released / unused, disbursed, etc
 }
 
 var (
@@ -83,6 +83,10 @@ func GetRewardsPointsByOjectId(objectId string, objectType string) (rp RewardsPo
 
 	return rewardsPoints, nil
 }
+/*
+func GetRewardsPointsByStatus(status string)(rewardsPoints string, err error){
+
+}*/
 
 func GetAllRewardsPoints() (rewardsPoints string, err error){
 	// implementation

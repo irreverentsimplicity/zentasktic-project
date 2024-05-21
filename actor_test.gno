@@ -367,18 +367,86 @@ func Test_AssignActorToTask(t *testing.T) {
 	})
 }
 
-func Test_AssignActorToProject(t *testing.T) {
-    actor, _ := GetActorById("1")
-    /*
-    project := WorkableProject{Project: zentasktic.Project{
-        Id:        "project1",
+func Test_UnassignActorFromTask(t *testing.T) {
+	actor, err := GetActorById("1")
+	if err != nil {
+		t.Fatalf("Failed to get actor: %v", err)
+	}
+	taskToUnassignFrom, terr := ztm.GetTaskById("task1")
+	if terr != nil {
+        t.Fatalf("Failed to get task: %v", terr)
+    }
+	wt := WorkableTask{Task: taskToUnassignFrom}
+	// Ensure the task is initially assigned to the actor
+	existingActorTasks, exist := ActorTasks.Get(actor.Id)
+	if !exist {
+		t.Fatal("Actor tasks not initialized correctly")
+	}
+
+	tasks, ok := existingActorTasks.([]*WorkableTask)
+	if len(tasks) == 0 || tasks[0].Id != wt.Id {
+		t.Fatalf("Expected task not found in actor tasks. Got: %v", tasks)
+	}
+
+	// Test unassigning the task from the actor
+	uerr := actor.UnassignActorFromTask(&wt)
+	if uerr != nil {
+		t.Errorf("Failed to unassign task: %v", uerr)
+	}
+	
+	// Verify the task is unassigned
+	existingActorTasks, _ = ActorTasks.Get(actor.Id)
+	tasks, ok = existingActorTasks.([]*WorkableTask)
+	if !ok || len(tasks) != 0 {
+		t.Fatalf("Expected no tasks in actor tasks. Got: %v", tasks)
+	}
+	
+	// Test unassigning a task that does not exist
+	err = actor.UnassignActorFromTask(&wt)
+	if err != ErrActorTasksNotFound {
+		t.Errorf("Expected ErrActorTasksNotFound, got: %v", err)
+	}
+}
+
+func Test_GetActorTasks(t *testing.T) {
+	actor, _ := GetActorById("1")
+
+	// Test case when there are no tasks assigned to the actor
+	t.Run("No tasks assigned to actor", func(t *testing.T) {
+		_, err := actor.GetActorTasks()
+		if err != ErrActorTasksNotFound {
+			t.Errorf("Expected ErrActorTasksNotFound, got %v", err)
+		}
+	})
+
+	// Adding tasks to the actor
+    task := WorkableTask{Task: zentasktic.Task{
+        Id:        "task1",
+        ProjectId: "project1",
         ContextId: "context1",
         RealmId:   "realm1",
-        Tasks:     []zentasktic.Task{},
-        Body:      "This is the project body",
-        Due:       "2024-12-31",
+        Body:      "This is a task body",
+        Due:       "2023-12-31",
+        Alert:     "2023-12-30",
     },}
-    zpm.AddProject(project.Project)*/
+    ztm.AddTask(task.Task)
+	err := actor.AssignActorToTask(&task)
+	
+	// Test case when tasks are assigned to the actor
+	t.Run("Tasks assigned to actor", func(t *testing.T) {
+		tasks, err := actor.GetActorTasks()
+		if err != nil {
+			t.Errorf("Failed to get actor tasks: %v", err)
+		}
+		expectedTasks := `{"tasks":[{"taskId":"task1","taskProjectId":"project1","taskContextId":"context1","taskRealmId":"realm1","taskBody":"This is a task body","taskDue":"2023-12-31","taskAlert":"2023-12-30"}]}`
+		if tasks != expectedTasks {
+			t.Errorf("Expected %v, got %v", expectedTasks, tasks)
+		}
+	})
+}
+
+func Test_AssignActorToProject(t *testing.T) {
+    actor, _ := GetActorById("1")
     wproject, err := zpm.GetProjectById("project1")
     if err != nil {
         t.Fatalf("Failed to get project: %v", err)
@@ -396,6 +464,100 @@ func Test_AssignActorToProject(t *testing.T) {
 		existingProjects, exist := ActorProjects.Get(actor.Id)
 		if !exist {
 			t.Errorf("Expected projects to be assigned to actor")
+		}
+	})
+}
+
+func Test_UnassignActorFromProject(t *testing.T) {
+	actor, err := GetActorById("1")
+	if err != nil {
+		t.Fatalf("Failed to get actor: %v", err)
+	}
+	projectToUnassignFrom, terr := zpm.GetProjectById("project1")
+	if terr != nil {
+        t.Fatalf("Failed to get project: %v", terr)
+    }
+	wp := WorkableProject{Project: projectToUnassignFrom}
+	// Ensure the task is initially assigned to the actor
+	existingActorProjects, exist := ActorProjects.Get(actor.Id)
+	if !exist {
+		t.Fatal("Actor projects not initialized correctly")
+	}
+
+	projects, ok := existingActorProjects.([]*WorkableProject)
+	if len(projects) == 0 || projects[0].Id != wp.Id {
+		t.Fatalf("Expected project not found in actor projects. Got: %v", projects)
+	}
+
+	// Test unassigning the project from the actor
+	uerr := actor.UnassignActorFromProject(&wp)
+	if uerr != nil {
+		t.Errorf("Failed to unassign project: %v", uerr)
+	}
+	
+	// Verify the project is unassigned
+	existingActorProjects, _ = ActorProjects.Get(actor.Id)
+	projects, ok = existingActorProjects.([]*WorkableProject)
+	if !ok || len(projects) != 0 {
+		t.Fatalf("Expected no projets in actor projects. Got: %v", projects)
+	}
+	
+	// Test unassigning a project that does not exist
+	err = actor.UnassignActorFromProject(&wp)
+	if err != ErrActorProjectsNotFound {
+		t.Errorf("Expected ErrActorProjectsNotFound, got: %v", err)
+	}
+}
+
+func Test_GetActorProjects(t *testing.T) {
+	actor, _ := GetActorById("1")
+
+	// Test case when there are no projects assigned to the actor
+	t.Run("No projects assigned to actor", func(t *testing.T) {
+		_, err := actor.GetActorProjects()
+		if err != ErrActorProjectsNotFound {
+			t.Errorf("Expected ErrActorProjectsNotFound, got %v", err)
+		}
+	})
+
+	// Adding projects to the actor
+    project := WorkableProject{Project: zentasktic.Project{
+        Id:        "project1",
+        ContextId: "context1",
+        RealmId:   "realm1",
+        Tasks:     []zentasktic.Task{},
+        Body:      "This is the project body",
+        Due:       "2024-12-31",
+    },}
+    zpm.AddProject(project.Project)
+	err := actor.AssignActorToProject(&project)
+	
+	// Test case when projects are assigned to the actor
+	t.Run("Projects assigned to actor", func(t *testing.T) {
+		projects, err := actor.GetActorProjects()
+		if err != nil {
+			t.Errorf("Failed to get actor projects: %v", err)
+		}
+		expectedProjects := `{"projects":[{"projectId":"project1","projectContextId":"context1","projectRealmId":"realm1","projectTasks":[],"projectBody":"This is the project body","projectDue":"2024-12-31"}]}`
+		if projects != expectedProjects {
+			t.Errorf("Expected %v, got %v", expectedProjects, projects)
+		}
+	})
+}
+
+func Test_GetAllActors(t *testing.T) {
+	
+	t.Run("With actors", func(t *testing.T) {
+		actors, err := GetAllActors()
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+		if actors == "" {
+			t.Errorf("Expected JSON array of actors, got empty string")
+		}
+		expected := `{"actors":[{"actorId":"1","actorName":"Updated Name","actorAddress":"newAddress"}]}`
+		if actors != expected {
+			t.Errorf("Expected %s, got %s", expected, actors)
 		}
 	})
 }
