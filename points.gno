@@ -109,16 +109,16 @@ func GetAllRewardsPoints() (rewardsPoints string, err error){
 	return string(marshalledRwardsPoints), nil
 }
 
-func () (totalAmount std.Coins, err error){
-	total := std.Coins{}
+func GetTotalRewardsPoints() (totalAmount std.Coins, err error){
+		total := std.Coins{}
 
-	// Iterate over the RewardPoints AVL tree to find matching ObjectId and ObjectType records.
-	RewardsPoints.Iterate("", "", func(key string, value interface{}) bool {
-		if rewardsPointsItem, ok := value.(RewardsPoint); ok {
-			total = total.Add(rewardsPointsItem.Amount)
-		}
-		return false // Continue iteration until all nodes have been visited.
-	})
+		// Iterate over the RewardPoints AVL tree to find matching ObjectId and ObjectType records.
+		RewardsPoints.Iterate("", "", func(key string, value interface{}) bool {
+				if rewardsPointsItem, ok := value.(RewardsPoint); ok {
+						total = total.Add(rewardsPointsItem.Amount)
+				}
+				return false // Continue iteration until all nodes have been visited.
+		})
 
-	return total, nil
+		return total, nil
 }

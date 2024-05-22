@@ -6,6 +6,7 @@ var (
 	ErrWorkDurationNotFound             	= errors.New("Could not find work duration")
 	ErrWorkDurationNotRemoved           	= errors.New("Could not remove work duration")
 	ErrWorkDurationsEmpty		           	= errors.New("There are no work durations registered")
+	ErrWorkDurationIdAlreadyExists			= errors.New("Work duration id already exists")
 	ErrActorIdAlreadyExists					= errors.New("Actor id already exists")
 	ErrTeamIdAlreadyExists					= errors.New("Team id already exists")
 	ErrActorIdNotFound						= errors.New("Actor id not found")

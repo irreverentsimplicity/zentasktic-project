@@ -44,6 +44,12 @@ var (
 )
 
 func (wd WorkDuration) AddWorkDuration() (err error) { 
+	if WorkDurations.Size() != 0 {
+		existingWD, exist := WorkDurations.Get(wd.Id)
+		if exist {
+			return ErrWorkDurationIdAlreadyExists
+		}
+	}
 	WorkDurations.Set(wd.Id, wd)
 	return nil
 }

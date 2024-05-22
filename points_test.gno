@@ -55,7 +55,7 @@ func Test_UpdateRewardsPoints(t *testing.T) {
 	})
 }
 
-func Test_RemoveRwardsPoints(t *testing.T) {
+func Test_RemoveRewardsPoints(t *testing.T) {
 	
 	rpId := "2"
 	point := RewardsPoint{Id: rpId, ObjectId: "project1", ObjectType: "project", Amount: std.Coins{{Denom: "ugnot",  Amount: 400}}, Status: "Allocated",}
