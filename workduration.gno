@@ -76,7 +76,7 @@ func (wd WorkDuration) RemoveWorkDuration() (err error) {
 		}
 	}
 	
-	_, removed := WorkDurations.Remove(existingWorkDuration.Id)
+	_, removed := WorkDurations.Remove(wd.Id)
 	if !removed {
 		return ErrWorkDurationNotRemoved
 	}
