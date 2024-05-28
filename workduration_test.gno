@@ -124,3 +124,36 @@ func Test_RemoveWorkDuration(t *testing.T) {
 		}
 	})
 }
+
+func Test_GetWorkDurationByObjectId(t *testing.T){
+	
+	sampleTask := WorkableTask{
+		Task: zentasktic.Task{Id: "1", RealmId: "1", Body: "First task", ContextId: "1",},
+	}
+	
+	workDurationTask := WorkDuration{
+		Id:         "wd-001",
+		ObjectId:   "1",
+		ObjectType: "Task",
+		Duration:   2 * time.Hour,
+		Workable:   &sampleTask,
+	}
+	result, err := GetWorkDurationByOjectId("1", "Task")
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if result.ObjectId != workDurationTask.ObjectId || result.ObjectType != workDurationTask.ObjectType {
+		t.Errorf("Expected %v, got %v", workDurationTask, result)
+	}
+
+	// Test with non-existing data
+	result, err = GetWorkDurationByOjectId("nonexistent", "Task")
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if (result != WorkDuration{}) {
+		t.Errorf("Expected empty WorkDuration, got %v", result)
+	}
+}
