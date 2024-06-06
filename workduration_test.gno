@@ -157,3 +157,15 @@ func Test_GetWorkDurationByObjectId(t *testing.T){
 		t.Errorf("Expected empty WorkDuration, got %v", result)
 	}
 }
+
+func Test_GetAllWorkDurations(t *testing.T){
+	// Test the function
+	result, err := GetAllWorkDurations()
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	if len(result) != 1 {
+		t.Errorf("Expected 1 entry, got %v", result)
+	}
+}
