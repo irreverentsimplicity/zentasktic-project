@@ -2,6 +2,8 @@ package zentasktic_project
 
 
 import (
+	"strconv"
+
 	"gno.land/p/demo/zentasktic"
 )
 
@@ -65,13 +67,12 @@ func init() {
 
 // tasks
 
-func AddTask(taskName, taskDescription string) error {
+func AddTask(taskBody string) error {
 	taskID := incrementTaskID()
-	wt := WorkableTask{
+	wt := &WorkableTask{
 		Task: zentasktic.Task{
-			ID:          taskID,
-			Name:        taskName,
-			Description: taskDescription,
+			Id:          strconv.Itoa(taskID),
+			Body:        taskBody,
 		},
 	}
 	return ztm.AddTask(wt.Task)
@@ -87,11 +88,11 @@ func EditTask(taskId string) error {
 }
 
 func RemoveTask(taskId string) error {
-	tasskToRemove, err := GetTaskById(taskId)
+	taskToRemove, err := GetTaskById(taskId)
 	if err != nil {
 		return err
 	}
-	return ztm.RemoveTask(wt.Task)
+	return ztm.RemoveTask(taskToRemove.Task)
 }
 
 func MoveTaskToRealm(taskId string, realmId string) error {
