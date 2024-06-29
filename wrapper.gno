@@ -48,6 +48,11 @@ var zrm *zentasktic.ZRealmManager
 var zcm *zentasktic.ZContextManager
 var zcl *zentasktic.ZCollectionManager
 var zom *zentasktic.ZObjectPathManager
+var currentTaskID int
+var currentProjectID int
+var currentContextID int
+var currentCollectionID int
+var currentPathID int
 
 func init() {
     ztm = zentasktic.NewZTaskManager()
@@ -56,19 +61,41 @@ func init() {
 	zcm = zentasktic.NewZContextManager()
 	zcl = zentasktic.NewZCollectionManager()
 	zom = zentasktic.NewZObjectPathManager()
+	currentTaskID = 0
+	currentProjectID = 0
+	currentContextID = 0
+	currentCollectionID = 0
+	currentPathID = 0
 }
 
 // tasks
 
-func AddTask(wt *WorkableTask) error {
+func AddTask(taskName, taskDescription string) error {
+	taskID := incrementTaskID()
+	wt := WorkableTask{
+		Task: zentasktic.Task{
+			ID:          taskID,
+			Name:        taskName,
+			Description: taskDescription,
+		},
+	}
 	return ztm.AddTask(wt.Task)
 }
 
-func EditTask(wt *WorkableTask) error {
-	return ztm.EditTask(wt.Task)
+
+func EditTask(taskId string) error {
+	taskToEdit, err := GetTaskById(taskId)
+	if err != nil {
+		return err	
+	}
+	return ztm.EditTask(taskToEdit.Task)
 }
 
-func RemoveTask(wt *WorkableTask) error {
+func RemoveTask(taskId string) error {
+	tasskToRemove, err := GetTaskById(taskId)
+	if err != nil {
+		return err
+	}
 	return ztm.RemoveTask(wt.Task)
 }
 
@@ -100,7 +127,7 @@ func GetTaskById(taskId string) (WorkableTask, error) {
 	return WorkableTask{Task: task}, nil
 }
 
-func GetAllTasks() (string, error){
+func GetAllTasks() (string){
 	return ztm.GetAllTasks()
 }
 
@@ -114,6 +141,11 @@ func GetTasksByContext(contextId string) (string, error){
 
 func GetTasksByDate(dueDate string, filterType string) (string, error){
 	return ztm.GetTasksByDate(dueDate, filterType)
+}
+
+func incrementTaskID() int {
+	currentTaskID++
+	return currentTaskID
 }
 
 // projects
