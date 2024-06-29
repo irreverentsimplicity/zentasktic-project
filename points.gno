@@ -1,8 +1,6 @@
 package zentasktic_project
 
 import (
-	"strconv"
-	"errors"
 	"std"
 
 	"gno.land/p/demo/avl"
@@ -24,7 +22,7 @@ func (rp RewardsPoint) AddRewardsPoints() (err error) {
 	// implementation
 	
 	if RewardsPoints.Size() != 0 {
-		existingRP, exist := RewardsPoints.Get(rp.Id)
+		_, exist := RewardsPoints.Get(rp.Id)
 		if exist {
 			return ErrRewardsPointIdAlreadyExists
 		}
@@ -35,9 +33,8 @@ func (rp RewardsPoint) AddRewardsPoints() (err error) {
 
 func (rp RewardsPoint) RemoveRewardsPoints() (err error) { 
 	// implementation
-	existingRP := RewardsPoint{}
 	if RewardsPoints.Size() != 0 {
-		existingRP, exist := RewardsPoints.Get(rp.Id)
+		_, exist := RewardsPoints.Get(rp.Id)
 		if !exist {
 			return ErrRewardsPointIdNotFound
 		}
@@ -51,10 +48,9 @@ func (rp RewardsPoint) RemoveRewardsPoints() (err error) {
 }
 
 func (rp RewardsPoint) UpdateRewardsPoints() (err error) { 
-	// implementation, get rpm by Id and replace the object
-	existingRP := RewardsPoint{}
+	// implementation
 	if RewardsPoints.Size() != 0 {
-		existingRP, exist := RewardsPoints.Get(rp.Id)
+		_, exist := RewardsPoints.Get(rp.Id)
 		if !exist {
 			return ErrRewardsPointIdNotFound
 		}

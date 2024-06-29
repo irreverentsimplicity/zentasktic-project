@@ -2,11 +2,6 @@ package zentasktic_project
 
 
 import (
-	"strconv"
-	"errors"
-	"std"
-
-	"gno.land/p/demo/avl"
 	"gno.land/p/demo/zentasktic"
 )
 

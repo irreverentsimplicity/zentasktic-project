@@ -1,9 +1,6 @@
 package zentasktic_project
 
 import (
-	"strconv"
-	"errors"
-
 	"gno.land/p/demo/avl"
 	"gno.land/p/demo/zentasktic"
 )
@@ -25,7 +22,7 @@ func (t Team) AddTeam() (err error) {
 	// implementation
 	
 	if Teams.Size() != 0 {
-		existingTeams, exist := Teams.Get(t.Id)
+		_, exist := Teams.Get(t.Id)
 		if exist {
 			return ErrTeamIdAlreadyExists
 		}
@@ -46,7 +43,7 @@ func (t Team) RemoveTeam() (err error) {
 
 	// If the team has members, remove it from the Members AVL tree
 	if Members.Size() != 0 {
-		existingTeamMembers, exist := Members.Get(t.Id)
+		_, exist := Members.Get(t.Id)
 		if exist {
 			_, removed := Members.Remove(t.Id)
 			if !removed {
@@ -57,7 +54,7 @@ func (t Team) RemoveTeam() (err error) {
 
 	// If the team has tasks assigned, unassign from them
 	if TeamTasks.Size() != 0 {
-		existingTeamTasks, exist := TeamTasks.Get(t.Id)
+		_, exist := TeamTasks.Get(t.Id)
 		if exist {
 			_, removed := TeamTasks.Remove(t.Id)
 			if !removed {
@@ -68,7 +65,7 @@ func (t Team) RemoveTeam() (err error) {
 
 	// If the team has projects assigned, unassign from them
 	if TeamProjects.Size() != 0 {
-		existingTeamProjects, exist := TeamProjects.Get(t.Id)
+		_, exist := TeamProjects.Get(t.Id)
 		if exist {
 			_, removed := TeamProjects.Remove(t.Id)
 			if !removed {
@@ -115,10 +112,9 @@ func (t Team) RemoveTeam() (err error) {
 
 
 func (t Team) EditTeam() (err error) {
-	// implementation, get team by Id and replace the object
-	existingTeam := Team{}
+	// implementation
 	if Teams.Size() != 0 {
-		existingTeam, exist := Teams.Get(t.Id)
+		_, exist := Teams.Get(t.Id)
 		if !exist {
 			return ErrTeamIdNotFound
 		}
@@ -241,11 +237,11 @@ func GetTeamById(teamId string) (t Team, err error) {
 		if exist {
 			return team.(Team), nil
 		} else {
-			return nil, ErrTeamIdNotFound
+			return Team{}, ErrTeamIdNotFound
 		}
 
 	}
-	return nil, ErrTeamIdNotFound
+	return Team{}, ErrTeamIdNotFound
 }
 
 func GetAllTeams()(teams string, err error) {

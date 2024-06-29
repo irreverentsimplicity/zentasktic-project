@@ -27,7 +27,7 @@ func Test_AddRewardsPoints(t *testing.T) {
 
 func Test_UpdateRewardsPoints(t *testing.T) {
 	
-	// Test editing an existing actor
+	// Test editing an existing payment
 	t.Run("Edit existing rewards points", func(t *testing.T) {
 		updatedRPoints := RewardsPoint{Id: "1", ObjectId: "task1", ObjectType: "task", Amount: std.Coins{{Denom: "ugnot",  Amount: 100}}, Status: "Disbursed",}
 		err := updatedRPoints.UpdateRewardsPoints()
@@ -35,7 +35,7 @@ func Test_UpdateRewardsPoints(t *testing.T) {
 			t.Errorf("expected no error, got %v", err)
 		}
 
-		// Verify the actor is updated
+		// Verify the payment is updated
 		editedRPoints, exist := RewardsPoints.Get(updatedRPoints.Id)
 		if !exist {
 			t.Errorf("expected rewards points to exist")
