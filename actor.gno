@@ -1,8 +1,6 @@
 package zentasktic_project
 
 import (
-	"strconv"
-	"errors"
 	"std"
 
 	"gno.land/p/demo/avl"
@@ -27,7 +25,7 @@ func (a Actor) AddActor() (err error) {
 	// implementation
 	
 	if Actors.Size() != 0 {
-		existingActor, exist := Actors.Get(a.Id)
+		_, exist := Actors.Get(a.Id)
 		if exist {
 			return ErrActorIdAlreadyExists
 		}
@@ -39,9 +37,8 @@ func (a Actor) AddActor() (err error) {
 
 func (a Actor) RemoveActor() (err error) {
 	// implementation
-	existingActor := Actor{}
 	if Actors.Size() != 0 {
-		existingActor, exist := Actors.Get(a.Id)
+		_, exist := Actors.Get(a.Id)
 		if !exist {
 			return ErrActorIdNotFound
 		}
@@ -57,7 +54,7 @@ func (a Actor) RemoveActor() (err error) {
 			}
 
 			// iterate over Members and remove Actor from there too
-			for i, team := range existingActorTeams.([]*Team) {
+			for _, team := range existingActorTeams.([]*Team) {
 				teamMembers, membersExist := Members.Get(team.Id)
 				if membersExist {
 					var index int = -1
@@ -82,7 +79,7 @@ func (a Actor) RemoveActor() (err error) {
 
 	// if actor has tasks assigned, unassign from them
 	if ActorTasks.Size() != 0 {
-		existingActorTasks, exist := ActorTasks.Get(a.Id)
+		_, exist := ActorTasks.Get(a.Id)
 		if exist {
 			_, removed := ActorTasks.Remove(a.Id)
 			if !removed {
@@ -93,7 +90,7 @@ func (a Actor) RemoveActor() (err error) {
 
 	// if actor has projects assigned, unassign from them
 	if ActorProjects.Size() != 0 {
-		existingActorProjects, exist := ActorProjects.Get(a.Id)
+		_, exist := ActorProjects.Get(a.Id)
 		if exist {
 			_, removed := ActorProjects.Remove(a.Id)
 			if !removed {
@@ -112,10 +109,9 @@ func (a Actor) RemoveActor() (err error) {
 }
 
 func (a Actor) EditActor() (err error) {
-	// implementation, get actor by Id and replace the object
-	existingActor := Actor{}
+	// implementation
 	if Actors.Size() != 0 {
-		existingActor, exist := Actors.Get(a.Id)
+		_, exist := Actors.Get(a.Id)
 		if !exist {
 			return ErrActorIdNotFound
 		}
@@ -127,9 +123,8 @@ func (a Actor) EditActor() (err error) {
 
 func (a Actor) AddActorToTeam(t Team) (err error) {
 	// we cross reference actor membership in 2 objects: ActorTeams, and Members
-	existingActor := Actor{}
 	if Actors.Size() != 0 {
-		existingActor, exist := Actors.Get(a.Id)
+		_, exist := Actors.Get(a.Id)
 		if !exist {
 			return ErrActorIdNotFound
 		}
@@ -356,11 +351,11 @@ func GetActorById(actorId string) (a Actor, err error) {
 		if exist {
 			return actor.(Actor), nil
 		} else {
-			return nil, ErrActorIdNotFound
+			return Actor{}, ErrActorIdNotFound
 		}
 
 	}
-	return nil, ErrActorIdNotFound
+	return Actor{}, ErrActorIdNotFound
 }
 
 func GetAllActors()(actors string, err error) {

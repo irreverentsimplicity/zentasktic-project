@@ -1,8 +1,6 @@
 package zentasktic_project
 
 import (
-	"strconv"
-	"errors"
 	"time"
 
 	"gno.land/p/demo/avl"
@@ -45,7 +43,7 @@ var (
 
 func (wd WorkDuration) AddWorkDuration() (err error) { 
 	if WorkDurations.Size() != 0 {
-		existingWD, exist := WorkDurations.Get(wd.Id)
+		_, exist := WorkDurations.Get(wd.Id)
 		if exist {
 			return ErrWorkDurationIdAlreadyExists
 		}
@@ -55,9 +53,9 @@ func (wd WorkDuration) AddWorkDuration() (err error) {
 }
 
 func (wd WorkDuration) EditWorkDuration() (err error) { 
-	existingWorkDuration := WorkDuration{}
+	
 	if WorkDurations.Size() != 0 {
-		existingWorkDuration, exist := WorkDurations.Get(wd.Id)
+		_, exist := WorkDurations.Get(wd.Id)
 		if !exist {
 			return ErrWorkDurationNotFound
 		}
@@ -68,9 +66,8 @@ func (wd WorkDuration) EditWorkDuration() (err error) {
 
 func (wd WorkDuration) RemoveWorkDuration() (err error) { 
 	// implementation
-	existingWorkDuration := WorkDuration{}
 	if WorkDurations.Size() != 0 {
-		existingWorkDuration, exist := WorkDurations.Get(wd.Id)
+		_, exist := WorkDurations.Get(wd.Id)
 		if !exist {
 			return ErrWorkDurationNotFound
 		}
