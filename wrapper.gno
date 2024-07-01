@@ -19,22 +19,15 @@ type WorkableRealm struct {
 }
 
 type WorkableContext struct {
-	Id   string
-	Name string
+	zentasktic.Context
 }
 
 type WorkableCollection struct {
-	Id       string
-	RealmId  string
-	Name     string
-	Tasks    []WorkableTask
-	Projects []WorkableProject
+	zentasktic.Collection
 }
 
 type WorkableObjectPath struct {
-	ObjectType string
-	Id         string
-	RealmId    string
+	zentasktic.ObjectPath
 }
 
 // zentasktic managers
@@ -242,47 +235,53 @@ func GetAllRealms() (string, error) {
 
 // contexts
 
-func AddContext(wc WorkableContext) error {
-	c := zentasktic.Context{
-		Id:   wc.Id,
-		Name: wc.Name,
+func AddContext(contextName string) error {
+	contextID := incrementContextID()
+	wc := &WorkableContext{
+		Context: zentasktic.Context{
+			Id:          strconv.Itoa(contextID),
+			Name:        contextName,
+		},
 	}
-	return zcm.AddContext(c)
+	return zcm.AddContext(wc.Context)
 }
 
-func EditContext(wc WorkableContext) error {
-	c := zentasktic.Context{
-		Id:   wc.Id,
-		Name: wc.Name,
+func EditContext(contextId string, newContext string) error {
+	contextToEdit, err := GetContextById(contextId)
+	if err != nil {
+		return err	
 	}
-	return zcm.EditContext(c)
+	contextToEdit.Name = newContext;
+	return zcm.EditContext(contextToEdit.Context)
 }
 
-func RemoveContext(wc WorkableContext) error {
-	c := zentasktic.Context{
-		Id:   wc.Id,
-		Name: wc.Name,
+func RemoveContext(contextId string) error {
+	contextToRemove, err := GetContextById(contextId)
+	if err != nil {
+		return err
 	}
-	return zcm.RemoveContext(c)
+	return zcm.RemoveContext(contextToRemove.Context)
 }
 
 func GetContextById(contextId string) (WorkableContext, error) {
-	c, err := zcm.GetContextById(contextId)
+	context, err := zcm.GetContextById(contextId)
 	if err != nil {
 		return WorkableContext{}, err
 	}
-	return WorkableContext{
-		Id:   c.Id,
-		Name: c.Name,
-	}, nil
+	return WorkableContext{Context: context}, nil
 }
 
-func GetAllContexts() (string, error) {
+func GetAllContexts() (string) {
 	return zcm.GetAllContexts()
 }
 
-// collections
+func incrementContextID() int {
+	currentContextID++
+	return currentContextID
+}
 
+// collections
+/*
 func AddCollection(wc WorkableCollection) error {
 	c := zentasktic.Collection{
 		Id:       wc.Id,
@@ -387,7 +386,7 @@ func toWorkableProjects(projects []zentasktic.Project) []WorkableProject {
 		wprojects[i] = WorkableProject{Project: p}
 	}
 	return wprojects
-}
+}*/
 
 // object Paths
 
