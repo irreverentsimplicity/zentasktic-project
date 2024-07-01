@@ -73,17 +73,19 @@ func AddTask(taskBody string) error {
 		Task: zentasktic.Task{
 			Id:          strconv.Itoa(taskID),
 			Body:        taskBody,
+			RealmId: 	 "1",
 		},
 	}
 	return ztm.AddTask(wt.Task)
 }
 
 
-func EditTask(taskId string) error {
+func EditTask(taskId string, taskBody string) error {
 	taskToEdit, err := GetTaskById(taskId)
 	if err != nil {
 		return err	
 	}
+	taskToEdit.Body = taskBody;
 	return ztm.EditTask(taskToEdit.Task)
 }
 
@@ -127,7 +129,7 @@ func GetAllTasks() (string){
 	return ztm.GetAllTasks()
 }
 
-func GetTasksByRealm(realmId string) (string, error){
+func GetTasksByRealm(realmId string) (string){
 	return ztm.GetTasksByRealm(realmId)
 }
 
