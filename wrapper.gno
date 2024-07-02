@@ -126,11 +126,11 @@ func GetTasksByRealm(realmId string) (string){
 	return ztm.GetTasksByRealm(realmId)
 }
 
-func GetTasksByContext(contextId string) (string, error){
+func GetTasksByContext(contextId string) (string){
 	return ztm.GetTasksByContext(contextId)
 }
 
-func GetTasksByDate(dueDate string, filterType string) (string, error){
+func GetTasksByDate(dueDate string, filterType string) (string){
 	return ztm.GetTasksByDate(dueDate, filterType)
 }
 
@@ -141,16 +141,33 @@ func incrementTaskID() int {
 
 // projects
 
-func AddProject(wp *WorkableProject) error {
+func AddProject(projectBody string) error {
+	projectID := incrementProjectID()
+	wp := &WorkableProject{
+		Project: zentasktic.Project{
+			Id:          strconv.Itoa(projectID),
+			Body:        projectBody,
+			RealmId: 	 "1",
+		},
+	}
 	return zpm.AddProject(wp.Project)
 }
 
-func EditProject(wp *WorkableProject) error {
-	return zpm.EditProject(wp.Project)
+func EditProject(projectId string, projectBody) error {
+	projectToEdit, err := GetProjectById(projectId)
+	if err != nil {
+		return err	
+	}
+	projectToEdit.Body = projectBody;
+	return zpm.EditProject(projectToEdit.Project)
 }
 
-func RemoveProject(wp *WorkableProject) error {
-	return zpm.RemoveProject(wp.Project)
+func RemoveProject(projectId string) error {
+	projectToRemove, err := GetProjectById(projectId)
+	if err != nil {
+		return err
+	}
+	return zpm.RemoveProject(projectToRemove.Project)
 }
 
 func MoveProjectToRealm(wp WorkableProject, realmId string) error {
@@ -184,20 +201,25 @@ func GetProjectById(projectId string) (WorkableProject, error) {
 	return WorkableProject{Project: project}, nil
 }
 
-func GetAllProjects() (string, error){
+func GetAllProjects() (string){
 	return zpm.GetAllProjects()
 }
 
-func GetProjectsByRealm(realmId string) (string, error){
+func GetProjectsByRealm(realmId string) (string){
 	return zpm.GetProjectsByRealm(realmId)
 }
 
-func GetProjectsByContext(contextId string) (string, error){
+func GetProjectsByContext(contextId string) (string){
 	return zpm.GetProjectsByContext(contextId)
 }
 
-func GetProjectsByDate(dueDate string, filterType string) (string, error){
+func GetProjectsByDate(dueDate string, filterType string) (string){
 	return zpm.GetProjectsByDate(dueDate, filterType)
+}
+
+func incrementProjectID() int {
+	currentProjectID++
+	return currentProjectID
 }
 
 // realms
