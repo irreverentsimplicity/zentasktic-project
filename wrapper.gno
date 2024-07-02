@@ -39,6 +39,7 @@ var zcm *zentasktic.ZContextManager
 var zcl *zentasktic.ZCollectionManager
 var zom *zentasktic.ZObjectPathManager
 var currentTaskID int
+var currentProjectTaskID int
 var currentProjectID int
 var currentContextID int
 var currentCollectionID int
@@ -52,6 +53,7 @@ func init() {
 	zcl = zentasktic.NewZCollectionManager()
 	zom = zentasktic.NewZObjectPathManager()
 	currentTaskID = 0
+	currentProjectTaskID = 0
 	currentProjectID = 0
 	currentContextID = 0
 	currentCollectionID = 0
@@ -103,10 +105,10 @@ func SetTaskAlert(taskId string, alert string) error {
 }
 
 func AttachTaskToProject(taskBody string, projectId string) error {
-	taskID := incrementTaskID()
+	projectTaskID := incrementProjectTaskID()
 	wt := &WorkableTask{
 		Task: zentasktic.Task{
-			Id:          strconv.Itoa(taskID),
+			Id:          strconv.Itoa(projectTaskID),
 			Body:        taskBody,
 			RealmId: 	 "1",
 		},
@@ -119,8 +121,16 @@ func AttachTaskToProject(taskBody string, projectId string) error {
 	return zpm.AttachTaskToProject(ztm, wt.Task, projectToAdd.Project)
 }
 
-func DetachTaskFromProject(ztm *zentasktic.ZTaskManager, wt *WorkableTask, wp *WorkableProject) error {
-	return zpm.DetachTaskFromProject(ztm, wt.Task, wp.Project)
+func DetachTaskFromProject(projectTaskId string, projectId string) error {
+	projectToDetachFrom, err := GetProjectById(projectId)
+	if err != nil {
+		return err	
+	}
+	return zpm.DetachTaskFromProject(ztm, projectTaskId, projectToDetachFrom.Project)
+}
+
+func RemoveTaskFromProject(projectTaskId string, projectId string) error {
+	return zpm.RemoveTaskFromProject(projectTaskId, projectId)
 }
 
 func GetTaskById(taskId string) (WorkableTask, error) {
@@ -150,6 +160,11 @@ func GetTasksByDate(dueDate string, filterType string) (string){
 func incrementTaskID() int {
 	currentTaskID++
 	return currentTaskID
+}
+
+func incrementProjectTaskID() int {
+	currentProjectTaskID++
+	return currentProjectTaskID
 }
 
 // projects
