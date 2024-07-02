@@ -126,8 +126,8 @@ func GetTasksByRealm(realmId string) (string){
 	return ztm.GetTasksByRealm(realmId)
 }
 
-func GetTasksByContext(contextId string) (string){
-	return ztm.GetTasksByContext(contextId)
+func GetTasksByContextAndRealm(contextId string, realmId string) (string){
+	return ztm.GetTasksByContextAndRealm(contextId, realmId)
 }
 
 func GetTasksByDate(dueDate string, filterType string) (string){
@@ -153,7 +153,7 @@ func AddProject(projectBody string) error {
 	return zpm.AddProject(wp.Project)
 }
 
-func EditProject(projectId string, projectBody) error {
+func EditProject(projectId string, projectBody string) error {
 	projectToEdit, err := GetProjectById(projectId)
 	if err != nil {
 		return err	
@@ -170,8 +170,8 @@ func RemoveProject(projectId string) error {
 	return zpm.RemoveProject(projectToRemove.Project)
 }
 
-func MoveProjectToRealm(wp WorkableProject, realmId string) error {
-	return zpm.MoveProjectToRealm(wp.Project, realmId)
+func MoveProjectToRealm(projectId string, realmId string) error {
+	return zpm.MoveProjectToRealm(projectId, realmId)
 }
 
 func GetProjectTasks(wp WorkableProject) ([]WorkableTask, error){
@@ -209,8 +209,8 @@ func GetProjectsByRealm(realmId string) (string){
 	return zpm.GetProjectsByRealm(realmId)
 }
 
-func GetProjectsByContext(contextId string) (string){
-	return zpm.GetProjectsByContext(contextId)
+func GetProjectsByContextAndRealm(contextId string, realmId string) (string){
+	return zpm.GetProjectsByContextAndRealm(contextId, realmId)
 }
 
 func GetProjectsByDate(dueDate string, filterType string) (string){
