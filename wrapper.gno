@@ -102,8 +102,21 @@ func SetTaskAlert(taskId string, alert string) error {
 	return ztm.SetTaskAlert(taskId, alert)
 }
 
-func AttachTaskToProject(ztm *zentasktic.ZTaskManager, wt *WorkableTask, wp *WorkableProject) error {
-	return zpm.AttachTaskToProject(ztm, wt.Task, wp.Project)
+func AttachTaskToProject(taskBody string, projectId string) error {
+	taskID := incrementTaskID()
+	wt := &WorkableTask{
+		Task: zentasktic.Task{
+			Id:          strconv.Itoa(taskID),
+			Body:        taskBody,
+			RealmId: 	 "1",
+		},
+	}
+	//ztm.AddTask(wt.Task)
+	projectToAdd, err := GetProjectById(projectId)
+	if err != nil {
+		return err	
+	}
+	return zpm.AttachTaskToProject(ztm, wt.Task, projectToAdd.Project)
 }
 
 func DetachTaskFromProject(ztm *zentasktic.ZTaskManager, wt *WorkableTask, wp *WorkableProject) error {
