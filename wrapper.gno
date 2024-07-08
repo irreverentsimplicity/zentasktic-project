@@ -234,6 +234,10 @@ func GetProjectById(projectId string) (WorkableProject, error) {
 	return WorkableProject{Project: project}, nil
 }
 
+func SetProjectTaskDueDate(projectId string, projectTaskId string, dueDate string) error {
+	return zpm.SetProjectTaskDueDate(projectId, projectTaskId, dueDate)
+}
+
 func GetAllProjects() (string){
 	return zpm.GetAllProjects()
 }
@@ -340,6 +344,18 @@ func AddContextToProject(contextId string, projectId string) error {
 		return merr
 	}
 	return zcm.AddContextToProject(zpm, contextToAdd.Context, projectToAddContextTo.Project)
+}
+
+func AddContextToProjectTask(contextId string, projectId string, projectTaskId string) error {
+	contextToAdd, err := GetContextById(contextId)
+	if err != nil {
+		return err
+	}
+	projectToAddContextTo, merr := GetProjectById(projectId)
+	if merr != nil {
+		return merr
+	}
+	return zcm.AddContextToProjectTask(zpm, contextToAdd.Context, projectToAddContextTo.Project, projectTaskId)
 }
 
 func GetContextById(contextId string) (WorkableContext, error) {
