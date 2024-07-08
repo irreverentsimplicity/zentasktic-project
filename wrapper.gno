@@ -121,12 +121,17 @@ func AttachTaskToProject(taskBody string, projectId string) error {
 	return zpm.AttachTaskToProject(ztm, wt.Task, projectToAdd.Project)
 }
 
+func EditProjectTask(projectTaskId string, projectTaskBody string, projectId string) error {
+	return zpm.EditProjectTask(projectTaskId, projectTaskBody, projectId)
+}
+
 func DetachTaskFromProject(projectTaskId string, projectId string) error {
 	projectToDetachFrom, err := GetProjectById(projectId)
 	if err != nil {
 		return err	
 	}
-	return zpm.DetachTaskFromProject(ztm, projectTaskId, projectToDetachFrom.Project)
+	detachedTaskId := strconv.Itoa(incrementTaskID())
+	return zpm.DetachTaskFromProject(ztm, projectTaskId, detachedTaskId, projectToDetachFrom.Project)
 }
 
 func RemoveTaskFromProject(projectTaskId string, projectId string) error {
@@ -217,8 +222,8 @@ func GetProjectTasks(wp WorkableProject) ([]WorkableTask, error){
 	return workableTasks, nil
 }
 
-func SetProjectDueDate(wp WorkableProject, dueDate string) error {
-	return zpm.SetProjectDueDate(wp.Project, dueDate)
+func SetProjectDueDate(projectId string, dueDate string) error {
+	return zpm.SetProjectDueDate(projectId, dueDate)
 }
 
 func GetProjectById(projectId string) (WorkableProject, error) {
@@ -311,6 +316,30 @@ func RemoveContext(contextId string) error {
 		return err
 	}
 	return zcm.RemoveContext(contextToRemove.Context)
+}
+
+func AddContextToTask(contextId string, taskId string) error {
+	contextToAdd, err := GetContextById(contextId)
+	if err != nil {
+		return err
+	}
+	taskToAddContextTo, merr := GetTaskById(taskId)
+	if merr != nil {
+		return merr
+	}
+	return zcm.AddContextToTask(ztm, contextToAdd.Context, taskToAddContextTo.Task)
+}
+
+func AddContextToProject(contextId string, projectId string) error {
+	contextToAdd, err := GetContextById(contextId)
+	if err != nil {
+		return err
+	}
+	projectToAddContextTo, merr := GetProjectById(projectId)
+	if merr != nil {
+		return merr
+	}
+	return zcm.AddContextToProject(zpm, contextToAdd.Context, projectToAddContextTo.Project)
 }
 
 func GetContextById(contextId string) (WorkableContext, error) {
