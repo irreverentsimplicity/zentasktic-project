@@ -207,6 +207,10 @@ func MoveProjectToRealm(projectId string, realmId string) error {
 	return zpm.MoveProjectToRealm(projectId, realmId)
 }
 
+func MarkProjectTaskAsDone(projectId string, projectTaskId string) error {
+	return zpm.MarkProjectTaskAsDone(projectId, projectTaskId)
+}
+
 func GetProjectTasks(wp WorkableProject) ([]WorkableTask, error){
 	tasks, err := zpm.GetProjectTasks(wp.Project)
 	if err != nil {
