@@ -58,7 +58,7 @@ type Actor struct {
 type Team struct {
 	Id      string   `json:"teamId"`
 	Name    string   `json:"teamName"`
-	Members []*Actor `json:"teamMembers"`
+	Members []string `json:"teamMembers"`
 }
 
 type WorkDuration struct {
@@ -72,7 +72,7 @@ type WorkDuration struct {
 type RewardsPoint struct {
     Id				string `json:"rewardsPointId"`
     ObjectId 		string `json:"objectId"`
-    ObjectType      string `json:"objectType"`
+    ObjectType      string `json:"objectType"` // Task, Project
 	Amount  		std.Coins `json:"rewardsPointAmount"`
     Status			string `json:"rewardsPointStatus"`            // assigned / released / unused, disbursed, etc
 }

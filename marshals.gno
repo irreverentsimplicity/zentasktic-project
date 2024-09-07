@@ -81,13 +81,16 @@ func (t Team) MarshalJSON() ([]byte, error) {
 	b.WriteString(`"teamMembers":[`)
 
 	if len(t.Members) != 0 {
-		for i, actor := range t.Members {
+		for i, actorId := range t.Members {
 			if i > 0 {
 				b.WriteString(`,`)
 			}
-			teamMemberJSON, perr := actor.MarshalJSON()
-			if perr == nil {
-				b.WriteString(string(teamMemberJSON))
+			actor, err := GetActorById(actorId)
+			if err == nil {
+				teamMemberJSON, perr := actor.MarshalJSON()
+				if perr == nil {
+					b.WriteString(string(teamMemberJSON))
+				}
 			}
 		}
 	}

@@ -29,8 +29,8 @@ func (a *Actor) RemoveActor() error {
 	// Remove actor from any teams they belong to
 	Teams.Iterate("", "", func(key string, value interface{}) bool {
 		team := value.(*Team)
-		for i, member := range team.Members {
-			if member.Id == a.Id {
+		for i, memberId := range team.Members {
+			if memberId == a.Id {
 				team.Members = append(team.Members[:i], team.Members[i+1:]...)
 				break
 			}
@@ -56,7 +56,8 @@ func (a *Actor) EditActor() error {
 }
 
 func (a *Actor) AddActorToTeam(t *Team) error {
-    actor, err := GetActorById(a.Id)
+    // Check if the actor exists
+    _, err := GetActorById(a.Id)
     if err != nil {
         return errors.New("actor ID not found")
     }
@@ -68,17 +69,18 @@ func (a *Actor) AddActorToTeam(t *Team) error {
     }
 
     // Check if the actor is already a member of the team
-    for _, member := range existingTeam.Members {
-        if member.Id == a.Id {
+    for _, memberId := range existingTeam.Members {
+        if memberId == a.Id {
             return nil // Actor is already a member of the team
         }
     }
 
-    // Add the actor to the team
-    existingTeam.Members = append(existingTeam.Members, actor)
+    // Add the actor's ID to the team
+    existingTeam.Members = append(existingTeam.Members, a.Id)
     Teams.Set(existingTeam.Id, existingTeam) // Update the team in the tree
     return nil
 }
+
 
 func (a *Actor) RemoveActorFromTeam(t *Team) error {
     // Check if the team exists
@@ -87,9 +89,9 @@ func (a *Actor) RemoveActorFromTeam(t *Team) error {
         return errors.New("team ID not found")
     }
 
-    // Find and remove the actor from the team's members list
-    for i, member := range existingTeam.Members {
-        if member.Id == a.Id {
+    // Find and remove the actor's ID from the team's members list
+    for i, memberId := range existingTeam.Members {
+        if memberId == a.Id {
             existingTeam.Members = append(existingTeam.Members[:i], existingTeam.Members[i+1:]...)
             Teams.Set(existingTeam.Id, existingTeam) // Update the team in the tree
             return nil
@@ -98,6 +100,7 @@ func (a *Actor) RemoveActorFromTeam(t *Team) error {
 
     return errors.New("actor not found in team")
 }
+
 
 
 
@@ -182,19 +185,29 @@ func (a *Actor) UnassignActorFromProject(wp *WorkableProject) error {
 }
 
 // GetActorById retrieves an actor by ID
+// GetActorById retrieves an actor by ID
 func GetActorById(actorId string) (*Actor, error) {
 	actor, exist := Actors.Get(actorId)
-	if exist {
-		return actor.(*Actor), nil
+	if !exist {
+		return nil, errors.New("actor ID not found")
 	}
-	return nil, errors.New("actor ID not found")
+
+	a, ok := actor.(*Actor)
+	if !ok {
+		return nil, errors.New("type assertion to *Actor failed")
+	}
+
+	return a, nil
 }
+
 
 // GetAllActors retrieves all actors and returns them as a JSON string
 func GetAllActors() string {
 	actors := make([]*Actor, 0)
 	Actors.Iterate("", "", func(key string, value interface{}) bool {
-		actors = append(actors, value.(*Actor))
+		if a, ok := value.(*Actor); ok {
+			actors = append(actors, a)
+		} 
 		return false // Continue iteration
 	})
 
@@ -206,14 +219,15 @@ func GetAllActors() string {
 	return string(marshalledActors)
 }
 
+
 // GetActorTeams retrieves all teams associated with an actor
 func (a *Actor) GetActorTeams() (string, error) {
 	var actorTeams []*Team
 
 	Teams.Iterate("", "", func(key string, value interface{}) bool {
 		team := value.(*Team)
-		for _, member := range team.Members {
-			if member.Id == a.Id {
+		for _, memberId := range team.Members {
+			if memberId == a.Id {
 				actorTeams = append(actorTeams, team)
 				break
 			}

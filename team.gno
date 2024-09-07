@@ -17,27 +17,21 @@ func (t *Team) AddTeam() error {
 
 // RemoveTeam removes a team from the Teams tree and cleans up associated data
 func (t *Team) RemoveTeam() error {
-	_, terr := GetTeamById(t.Id)
+	// Check if the team exists
+	team, terr := GetTeamById(t.Id)
 	if terr != nil {
 		return errors.New("team ID not found")
 	}
 
-	// Remove the team from Teams tree
-	Teams.Remove(t.Id)
-
-	// Remove the team from any actor's team list
-	Actors.Iterate("", "", func(key string, value interface{}) bool {
-		actor := value.(*Actor)
-		actor.RemoveActorFromTeam(t)
-		return false // Continue iteration
-	})
-
+	// Remove the team from the Teams tree
+	Teams.Remove(team.Id)
 	// Remove the team's tasks and projects
-	TeamTasks.Remove(t.Id)
-	TeamProjects.Remove(t.Id)
+	TeamTasks.Remove(team.Id)
+	TeamProjects.Remove(team.Id)
 
 	return nil
 }
+
 
 // EditTeam updates an existing team's details in the Teams tree
 func (t *Team) EditTeam() error {
@@ -153,6 +147,7 @@ func GetAllTeams() string {
 	}
 	return string(marshalledTeams)
 }
+
 
 // GetTeamTasks retrieves all tasks associated with a team
 func (t *Team) GetTeamTasks() (string, error) {
