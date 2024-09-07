@@ -1,45 +1,5 @@
 package zentasktic_project
 
-import (
-	"time"
-
-	"gno.land/p/demo/avl"
-	"gno.land/p/demo/zentasktic"
-)
-
-type Workable interface {
-	// restrict implementation of Workable to this realm
-	assertWorkable()
-}
-
-type isWorkable struct {}
-
-type WorkableTask struct {
-    zentasktic.Task
-}
-
-func (wt *WorkableTask) assertWorkable() {}
-
-type WorkableProject struct {
-    zentasktic.Project
-}
-
-func (wp *WorkableProject) assertWorkable() {}
-
-var _ Workable = &WorkableTask{}
-var _ Workable = &WorkableProject{}
-
-type WorkDuration struct {
-	Id				string `json:"workDurationId"`
-    ObjectId 		string `json:"objectId"`
-    ObjectType      string `json:"objectType"` // Task, Project
-	Duration  		time.Duration `json:"workDuration"`
-	Workable   		Workable      `json:"-"`
-}
-
-var (
-	WorkDurations avl.Tree // wd.Id -> wd
-)
 
 func (wd WorkDuration) AddWorkDuration() (err error) { 
 	if WorkDurations.Size() != 0 {

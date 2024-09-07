@@ -1,76 +1,49 @@
 package zentasktic_project
 
 import (
-	"gno.land/p/demo/avl"
+	"errors"
 	"gno.land/p/demo/zentasktic"
 )
 
-type Team struct {
-	Id      string   `json:"teamId"`
-	Name    string   `json:"teamName"`
-	Members []*Actor `json:"teamMembers"`
-}
-
-var (
-	Teams        avl.Tree // t.id -> *Team
-	Members      avl.Tree // t.id -> []*Actor
-	TeamTasks    avl.Tree // t.id -> []*WorkableTask
-	TeamProjects avl.Tree // t.id -> []*WorkableProject
-)
-
-// AddTeam adds a new team to the Teams AVL tree
+// AddTeam adds a new team to the Teams tree
 func (t *Team) AddTeam() error {
-	if _, exist := Teams.Get(t.Id); exist {
-		return ErrTeamIdAlreadyExists
+	if _, terr := GetTeamById(t.Id); terr == nil {
+		// terr == nil means we found a team
+		return errors.New("team ID already exists")
 	}
 	Teams.Set(t.Id, t)
 	return nil
 }
 
-// RemoveTeam removes a team from the Teams AVL tree and cleans up associated data
+// RemoveTeam removes a team from the Teams tree and cleans up associated data
 func (t *Team) RemoveTeam() error {
-	if _, exist := Teams.Get(t.Id); !exist {
-		return ErrTeamIdNotFound
+	_, terr := GetTeamById(t.Id)
+	if terr != nil {
+		return errors.New("team ID not found")
 	}
 
-	// Remove the team from Members
-	Members.Remove(t.Id)
+	// Remove the team from Teams tree
+	Teams.Remove(t.Id)
 
-	// Remove the team's tasks
-	TeamTasks.Remove(t.Id)
-
-	// Remove the team's projects
-	TeamProjects.Remove(t.Id)
-
-	// Remove the team from ActorTeams for all actor IDs
-	ActorTeams.Iterate("", "", func(actorId string, value interface{}) bool {
-		if actorTeams, ok := value.([]*Team); ok {
-			for i, team := range actorTeams {
-				if team.Id == t.Id {
-					updatedTeams := append(actorTeams[:i], actorTeams[i+1:]...)
-					if len(updatedTeams) == 0 {
-						ActorTeams.Remove(actorId)
-					} else {
-						ActorTeams.Set(actorId, updatedTeams)
-					}
-					break
-				}
-			}
-		}
-		return false
+	// Remove the team from any actor's team list
+	Actors.Iterate("", "", func(key string, value interface{}) bool {
+		actor := value.(*Actor)
+		actor.RemoveActorFromTeam(t)
+		return false // Continue iteration
 	})
 
-	// Finally, remove the team itself
-	if _, removed := Teams.Remove(t.Id); !removed {
-		return ErrTeamNotRemoved
-	}
+	// Remove the team's tasks and projects
+	TeamTasks.Remove(t.Id)
+	TeamProjects.Remove(t.Id)
+
 	return nil
 }
 
-// EditTeam updates an existing team's details in the Teams AVL tree
+// EditTeam updates an existing team's details in the Teams tree
 func (t *Team) EditTeam() error {
-	if _, exist := Teams.Get(t.Id); !exist {
-		return ErrTeamIdNotFound
+	_, terr := GetTeamById(t.Id)
+	if terr != nil {
+		return errors.New("team ID not found")
 	}
 	Teams.Set(t.Id, t)
 	return nil
@@ -78,77 +51,102 @@ func (t *Team) EditTeam() error {
 
 // AssignTeamToTask assigns a task to a team
 func (t *Team) AssignTeamToTask(wt *WorkableTask) error {
-	existingWorkableTasks, _ := TeamTasks.Get(t.Id)
-	tasks := existingWorkableTasks.([]*WorkableTask)
-	TeamTasks.Set(t.Id, append(tasks, wt))
+	// Add the task to the team's task list
+	tasks, _ := TeamTasks.Get(t.Id)
+	var updatedTasks []*WorkableTask
+	if tasks != nil {
+		updatedTasks = tasks.([]*WorkableTask)
+	}
+	for _, task := range updatedTasks {
+		if task.Id == wt.Id {
+			return nil // Task already assigned to team
+		}
+	}
+	updatedTasks = append(updatedTasks, wt)
+	TeamTasks.Set(t.Id, updatedTasks)
 	return nil
 }
 
 // UnassignTeamFromTask unassigns a task from a team
 func (t *Team) UnassignTeamFromTask(wt *WorkableTask) error {
-	existingTeamTasks, exist := TeamTasks.Get(t.Id)
+	tasks, exist := TeamTasks.Get(t.Id)
 	if !exist {
-		return ErrTeamTasksNotFound
+		return errors.New("team task not found")
 	}
 
-	tasks := existingTeamTasks.([]*WorkableTask)
-	for i, task := range tasks {
+	updatedTasks := tasks.([]*WorkableTask)
+	for i, task := range updatedTasks {
 		if task.Id == wt.Id {
-			updatedTasks := append(tasks[:i], tasks[i+1:]...)
-			TeamTasks.Set(t.Id, updatedTasks)
+			updatedTasks = append(updatedTasks[:i], updatedTasks[i+1:]...)
+			if len(updatedTasks) == 0 {
+				TeamTasks.Remove(t.Id)
+			} else {
+				TeamTasks.Set(t.Id, updatedTasks)
+			}
 			return nil
 		}
 	}
-	return ErrTeamTasksNotFound
+	return errors.New("team task not found")
 }
 
 // AssignTeamToProject assigns a project to a team
 func (t *Team) AssignTeamToProject(wp *WorkableProject) error {
-	existingWorkableProjects, _ := TeamProjects.Get(t.Id)
-	projects := existingWorkableProjects.([]*WorkableProject)
-	TeamProjects.Set(t.Id, append(projects, wp))
+	// Add the project to the team's project list
+	projects, _ := TeamProjects.Get(t.Id)
+	var updatedProjects []*WorkableProject
+	if projects != nil {
+		updatedProjects = projects.([]*WorkableProject)
+	}
+	for _, project := range updatedProjects {
+		if project.Id == wp.Id {
+			return nil // Project already assigned to team
+		}
+	}
+	updatedProjects = append(updatedProjects, wp)
+	TeamProjects.Set(t.Id, updatedProjects)
 	return nil
 }
 
 // UnassignTeamFromProject unassigns a project from a team
 func (t *Team) UnassignTeamFromProject(wp *WorkableProject) error {
-	existingTeamProjects, exist := TeamProjects.Get(t.Id)
+	projects, exist := TeamProjects.Get(t.Id)
 	if !exist {
-		return ErrTeamProjectsNotFound
+		return errors.New("team project not found")
 	}
 
-	projects := existingTeamProjects.([]*WorkableProject)
-	for i, project := range projects {
+	updatedProjects := projects.([]*WorkableProject)
+	for i, project := range updatedProjects {
 		if project.Id == wp.Id {
-			updatedProjects := append(projects[:i], projects[i+1:]...)
-			TeamProjects.Set(t.Id, updatedProjects)
+			updatedProjects = append(updatedProjects[:i], updatedProjects[i+1:]...)
+			if len(updatedProjects) == 0 {
+				TeamProjects.Remove(t.Id)
+			} else {
+				TeamProjects.Set(t.Id, updatedProjects)
+			}
 			return nil
 		}
 	}
-	return ErrTeamProjectsNotFound
+	return errors.New("team project not found")
 }
 
 // GetTeamById retrieves a team by ID
 func GetTeamById(teamId string) (*Team, error) {
 	team, exist := Teams.Get(teamId)
-	if !exist {
-		return nil, ErrTeamIdNotFound
+	if exist {
+		return team.(*Team), nil
 	}
-	return team.(*Team), nil
+	return nil, errors.New("team ID not found")
 }
 
 // GetAllTeams retrieves all teams and returns them as a JSON string
-func GetAllTeams() (string) {
-	var allTeams []*Team
-
+func GetAllTeams() string {
+	teams := make([]*Team, 0)
 	Teams.Iterate("", "", func(key string, value interface{}) bool {
-		if team, ok := value.(*Team); ok {
-			allTeams = append(allTeams, team)
-		}
-		return false
+		teams = append(teams, value.(*Team))
+		return false // Continue iteration
 	})
 
-	teamsObject := &TeamsObject{Teams: allTeams}
+	teamsObject := &TeamsObject{Teams: teams}
 	marshalledTeams, err := teamsObject.MarshalJSON()
 	if err != nil {
 		return ""
@@ -158,42 +156,40 @@ func GetAllTeams() (string) {
 
 // GetTeamTasks retrieves all tasks associated with a team
 func (t *Team) GetTeamTasks() (string, error) {
-	existingWorkableTasks, exist := TeamTasks.Get(t.Id)
+	tasks, exist := TeamTasks.Get(t.Id)
 	if !exist {
-		return "", ErrTeamTasksNotFound
+		return "", errors.New("team tasks not found")
 	}
 
-	tasksPtrs := existingWorkableTasks.([]*WorkableTask)
-	tasks := make([]zentasktic.Task, len(tasksPtrs))
-	for i, wt := range tasksPtrs {
-		tasks[i] = wt.Task
+	tasksObject := zentasktic.TasksObject{Tasks: make([]zentasktic.Task, 0)}
+	for _, task := range tasks.([]WorkableTask) {
+		tasksObject.Tasks = append(tasksObject.Tasks, task.Task)
 	}
 
-	tasksObject := zentasktic.TasksObject{Tasks: tasks}
-	marshaledTasks, err := tasksObject.MarshalJSON()
+	marshalledTasks, err := tasksObject.MarshalJSON()
 	if err != nil {
 		return "", err
 	}
-	return string(marshaledTasks), nil
+
+	return string(marshalledTasks), nil
 }
 
 // GetTeamProjects retrieves all projects associated with a team
 func (t *Team) GetTeamProjects() (string, error) {
-	existingWorkableProjects, exist := TeamProjects.Get(t.Id)
+	projects, exist := TeamProjects.Get(t.Id)
 	if !exist {
-		return "", ErrTeamProjectsNotFound
+		return "", errors.New("team projects not found")
 	}
 
-	projectPtrs := existingWorkableProjects.([]*WorkableProject)
-	projects := make([]zentasktic.Project, len(projectPtrs))
-	for i, wp := range projectPtrs {
-		projects[i] = wp.Project
+	projectsObject := zentasktic.ProjectsObject{Projects: make([]zentasktic.Project, 0)}
+	for _, project := range projects.([]WorkableProject) {
+		projectsObject.Projects = append(projectsObject.Projects, project.Project)
 	}
 
-	projectsObject := zentasktic.ProjectsObject{Projects: projects}
-	marshaledProjects, err := projectsObject.MarshalJSON()
+	marshalledProjects, err := projectsObject.MarshalJSON()
 	if err != nil {
 		return "", err
 	}
-	return string(marshaledProjects), nil
+
+	return string(marshalledProjects), nil
 }

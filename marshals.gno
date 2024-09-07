@@ -5,7 +5,7 @@ import (
 )
 
 type ActorsObject struct {
-	Actors	[]Actor
+	Actors	[]*Actor
 }
 
 type TeamsObject struct {
@@ -19,7 +19,9 @@ type RewardsPointsObject struct {
 func (a Actor) MarshalJSON() ([]byte, error) {
 
 	var b bytes.Buffer
-	
+	//if a == nil {
+    //    return nil, errors.New("actor is nil")
+    //}
 	b.WriteByte('{')
 
 	b.WriteString(`"actorId":"`)
@@ -62,6 +64,9 @@ func (ao ActorsObject) MarshalJSON() ([]byte, error) {
 func (t Team) MarshalJSON() ([]byte, error) {
 
 	var b bytes.Buffer
+	//if t == nil {
+    //    return nil, errors.New("team is nil")
+    //}
 	
 	b.WriteByte('{')
 

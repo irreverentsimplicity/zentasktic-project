@@ -2,20 +2,6 @@ package zentasktic_project
 
 import (
 	"std"
-
-	"gno.land/p/demo/avl"
-)
-
-type RewardsPoint struct {
-    Id				string `json:"rewardsPointId"`
-    ObjectId 		string `json:"objectId"`
-    ObjectType      string `json:"objectType"`
-	Amount  		std.Coins `json:"rewardsPointAmount"`
-    Status			string `json:"rewardsPointStatus"`            // assigned / released / unused, disbursed, etc
-}
-
-var (
-	RewardsPoints avl.Tree // rp.Id -> rp
 )
 
 func (rp RewardsPoint) AddRewardsPoints() (err error) { 

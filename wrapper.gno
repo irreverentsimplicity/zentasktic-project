@@ -10,26 +10,6 @@ import (
 // this is a convenience wrapper on top of the functions declared in the zentasktic package
 // to maintain consistency
 
-// wrapping zentasktic types
-
-
-type WorkableRealm struct {
-	Id   string
-	Name string
-}
-
-type WorkableContext struct {
-	zentasktic.Context
-}
-
-type WorkableCollection struct {
-	zentasktic.Collection
-}
-
-type WorkableObjectPath struct {
-	zentasktic.ObjectPath
-}
-
 // zentasktic managers
 
 var ztm *zentasktic.ZTaskManager
