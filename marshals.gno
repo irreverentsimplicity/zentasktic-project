@@ -2,6 +2,7 @@ package zentasktic_project
 
 import (
 	"bytes"
+	"gno.land/p/demo/zentasktic"
 )
 
 type ActorsObject struct {
@@ -10,6 +11,15 @@ type ActorsObject struct {
 
 type TeamsObject struct {
 	Teams	[]*Team
+}
+
+type TeamTasksObject struct {
+    TeamId    string         `json:"teamId"`
+    TeamTasks []zentasktic.Task `json:"tasks"`
+}
+
+type TeamsTasksObject struct {
+	TeamsTasks []TeamTasksObject `json:"teamsTasks"`
 }
 
 type RewardsPointsObject struct {
@@ -120,6 +130,36 @@ func (to TeamsObject) MarshalJSON() ([]byte, error) {
 	b.WriteString(`]}`)
 
 	return b.Bytes(), nil
+}
+
+func (tto TeamsTasksObject) MarshalJSON() ([]byte, error) {
+    var b bytes.Buffer
+
+    b.WriteString(`{"teamsTasks":[`)
+
+    for m, teamTaskObject := range tto.TeamsTasks {
+        if m > 0 {
+            b.WriteString(`,`)
+        }
+        b.WriteString(`{"teamId":"`)
+        b.WriteString(teamTaskObject.TeamId)
+        b.WriteString(`", "tasks":[`)
+        for i, task := range teamTaskObject.TeamTasks {
+            if i > 0 {
+                b.WriteString(`,`)
+            }
+            taskJSON, err := task.MarshalJSON()
+            if err != nil {
+                return nil, err
+            }
+            b.WriteString(string(taskJSON))
+        }
+        b.WriteString(`]}`)
+    }
+
+    b.WriteString(`]}`)
+
+    return b.Bytes(), nil
 }
 
 func (rp RewardsPoint) MarshalJSON() ([]byte, error) {

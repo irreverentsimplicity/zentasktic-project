@@ -44,12 +44,12 @@ func (t *Team) EditTeam() error {
 }
 
 // AssignTeamToTask assigns a task to a team
-func (t *Team) AssignTeamToTask(wt *WorkableTask) error {
+func (t *Team) AssignTeamToTask(wt WorkableTask) error {
 	// Add the task to the team's task list
 	tasks, _ := TeamTasks.Get(t.Id)
-	var updatedTasks []*WorkableTask
+	var updatedTasks []WorkableTask
 	if tasks != nil {
-		updatedTasks = tasks.([]*WorkableTask)
+		updatedTasks = tasks.([]WorkableTask)
 	}
 	for _, task := range updatedTasks {
 		if task.Id == wt.Id {
@@ -62,13 +62,13 @@ func (t *Team) AssignTeamToTask(wt *WorkableTask) error {
 }
 
 // UnassignTeamFromTask unassigns a task from a team
-func (t *Team) UnassignTeamFromTask(wt *WorkableTask) error {
+func (t *Team) UnassignTeamFromTask(wt WorkableTask) error {
 	tasks, exist := TeamTasks.Get(t.Id)
 	if !exist {
 		return errors.New("team task not found")
 	}
 
-	updatedTasks := tasks.([]*WorkableTask)
+	updatedTasks := tasks.([]WorkableTask)
 	for i, task := range updatedTasks {
 		if task.Id == wt.Id {
 			updatedTasks = append(updatedTasks[:i], updatedTasks[i+1:]...)
@@ -187,4 +187,36 @@ func (t *Team) GetTeamProjects() (string, error) {
 	}
 
 	return string(marshalledProjects), nil
+}
+
+// GetTeamsWithAssignedTasks retrieves all teams with assigned tasks from TeamTasks
+func GetTeamsWithAssignedTasks() (string) {
+    teamsWithAssignedTasks := make([]TeamTasksObject, 0)
+    
+    TeamTasks.Iterate("", "", func(key string, value interface{}) bool {
+        tasks, ok := value.([]WorkableTask)
+        if !ok {
+            return false // Continue iteration if the value is not of the expected type
+        }
+
+        // Cast []*WorkableTask to []zentasktic.Task
+        taskList := make([]zentasktic.Task, len(tasks))
+        for i, task := range tasks {
+            taskList[i] = task.Task
+        }
+
+        teamTaskObject := TeamTasksObject{
+            TeamId:    key,
+            TeamTasks: taskList,
+        }
+        teamsWithAssignedTasks = append(teamsWithAssignedTasks, teamTaskObject)
+        return false // Continue iteration
+    })
+
+    teamsTasksObject := TeamsTasksObject{TeamsTasks: teamsWithAssignedTasks}
+    marshalledTeamsTasks, err := teamsTasksObject.MarshalJSON()
+    if err != nil {
+        return ""
+    }
+    return string(marshalledTeamsTasks)
 }

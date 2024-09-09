@@ -43,6 +43,36 @@ func RemoveTeamWrap(teamId string) error {
 	return teamToRemove.RemoveTeam()
 }
 
+func AssignTeamToTaskWrap(teamId string, taskId string) error {
+	team, err := GetTeamById(teamId)
+	if err != nil {
+		// err != nil means we couldn't find a team
+		return err
+	}
+
+	task, terr := GetTaskById(taskId)
+	if terr != nil {
+		return terr
+	}
+
+	return team.AssignTeamToTask(task)
+}
+
+func UnassignTeamFromTaskWrap(teamId string, taskId string) error {
+	team, err := GetTeamById(teamId)
+	if err != nil {
+		// err != nil means we couldn't find a team
+		return err
+	}
+
+	task, terr := GetTaskById(taskId)
+	if terr != nil {
+		return terr
+	}
+
+	return team.UnassignTeamFromTask(task)
+}
+
 func incrementTeamID() int {
 	currentTeamID++
 	return currentTeamID
