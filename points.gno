@@ -66,7 +66,7 @@ func GetRewardsPointsByOjectId(objectId string, objectType string) (rp RewardsPo
 	return rewardsPoints, nil
 }
 
-func GetAllRewardsPoints() (rewardsPoints string, err error){
+func GetAllRewardsPoints() (rewardsPoints string){
 	// implementation
 	var allRewardsPoints []*RewardsPoint
 
@@ -86,13 +86,13 @@ func GetAllRewardsPoints() (rewardsPoints string, err error){
 	// Use the custom MarshalJSON method to marshal the rewards points into JSON.
 	marshalledRwardsPoints, merr := rewardsPointsObject.MarshalJSON()
 	if merr != nil {
-		return "", merr
+		return ""
 	} 
-	return string(marshalledRwardsPoints), nil
+	return string(marshalledRwardsPoints)
 }
 
-func GetTotalRewardsPoints() (totalAmount std.Coins, err error){
-		total := std.Coins{}
+func GetTotalRewardsPoints() (totalAmount std.Coin, err error){
+		total := std.Coin{}
 
 		// Iterate over the RewardPoints AVL tree to find matching ObjectId and ObjectType records.
 		RewardsPoints.Iterate("", "", func(key string, value interface{}) bool {

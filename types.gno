@@ -73,7 +73,7 @@ type RewardsPoint struct {
     Id				string `json:"rewardsPointId"`
     ObjectId 		string `json:"objectId"`
     ObjectType      string `json:"objectType"` // Task, Project
-	Amount  		std.Coins `json:"rewardsPointAmount"`
+	Amount  		std.Coin `json:"rewardsPointAmount"`
     Status			string `json:"rewardsPointStatus"`            // assigned / released / unused, disbursed, etc
 }
 
