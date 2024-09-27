@@ -3,7 +3,25 @@ package zentasktic_project
 import (
 	"errors"
 	"gno.land/p/demo/zentasktic"
+	"gno.land/p/demo/users"
+	"gno.land/p/demo/zteams"
 )
+
+// Converts an Actor to a zteams User for compatibility with TeamManager
+func (a *Actor) ToUser() users.User {
+	return users.User{
+		Name:    a.Name,
+		Address: a.Address,
+	}
+}
+
+// Converts a zteams User to an Actor for use within zentasktic_project
+func FromUser(u users.User) *Actor {
+	return &Actor{
+		Name:    u.Name,
+		Address: u.Address,
+	}
+}
 
 // AddActor adds a new actor to the Actors tree
 func (a *Actor) AddActor() error {
@@ -17,33 +35,32 @@ func (a *Actor) AddActor() error {
 
 // RemoveActor removes an actor from the Actors tree and cleans up associated data
 func (a *Actor) RemoveActor() error {
+	// Check if the actor exists in the Actors tree
 	_, err := GetActorById(a.Id)
-	//  if err != nil, actor was not found
 	if err != nil {
 		return errors.New("actor ID not found")
 	}
 
-	// Remove actor from Actors tree
+	// Remove the actor from the Actors tree
 	Actors.Remove(a.Id)
 
-	// Remove actor from any teams they belong to
-	Teams.Iterate("", "", func(key string, value interface{}) bool {
-		team := value.(*Team)
-		for i, memberId := range team.Members {
-			if memberId == a.Id {
-				team.Members = append(team.Members[:i], team.Members[i+1:]...)
-				break
-			}
-		}
+	// Use TeamManager to remove the actor from any teams they belong to
+	// Get all teams and check if the actor is a member, admin, or owner, and remove accordingly
+	TeamManager.Teams.Iterate("", "", func(key string, value interface{}) bool {
+		team := value.(*zteams.Team)
+		
+		// Remove the actor from the team if they are a member
+		_ = TeamManager.RemoveUserFromTeam(team.Address, a.Address, team.Owner)
 		return false // Continue iteration
 	})
 
-	// Remove actor's tasks and projects
+	// Remove the actor's tasks and projects
 	ActorTasks.Remove(a.Id)
 	ActorProjects.Remove(a.Id)
 
 	return nil
 }
+
 
 // EditActor updates an existing actor's details in the Actors tree
 func (a *Actor) EditActor() error {
@@ -55,6 +72,7 @@ func (a *Actor) EditActor() error {
 	return nil
 }
 
+/*
 func (a *Actor) AddActorToTeam(t *Team) error {
     // Check if the actor exists
     _, err := GetActorById(a.Id)
@@ -101,7 +119,7 @@ func (a *Actor) RemoveActorFromTeam(t *Team) error {
     return errors.New("actor not found in team")
 }
 
-
+*/
 
 
 // AssignActorToTask assigns a task to an actor
@@ -185,7 +203,6 @@ func (a *Actor) UnassignActorFromProject(wp *WorkableProject) error {
 }
 
 // GetActorById retrieves an actor by ID
-// GetActorById retrieves an actor by ID
 func GetActorById(actorId string) (*Actor, error) {
 	actor, exist := Actors.Get(actorId)
 	if !exist {
@@ -219,19 +236,28 @@ func GetAllActors() string {
 	return string(marshalledActors)
 }
 
-
 // GetActorTeams retrieves all teams associated with an actor
 func (a *Actor) GetActorTeams() (string, error) {
-	var actorTeams []*Team
+	var actorTeams []*zteams.Team
 
-	Teams.Iterate("", "", func(key string, value interface{}) bool {
-		team := value.(*Team)
-		for _, memberId := range team.Members {
-			if memberId == a.Id {
+	// Iterate through all teams managed by TeamManager
+	TeamManager.Teams.Iterate("", "", func(key string, value interface{}) bool {
+		team := value.(*zteams.Team)
+
+		// Get all members of the team
+		members, err := TeamManager.GetAllUsersInTeam(team.Address)
+		if err != nil {
+			return false // Skip if there was an error retrieving members
+		}
+
+		// Check if the actor is a member of this team
+		for _, member := range members {
+			if member.Address == a.Address {
 				actorTeams = append(actorTeams, team)
 				break
 			}
 		}
+
 		return false // Continue iteration
 	})
 
@@ -239,6 +265,7 @@ func (a *Actor) GetActorTeams() (string, error) {
 		return "", errors.New("actor teams not found")
 	}
 
+	// Convert zteams.Team objects to the TeamsObject format for JSON marshalling
 	teamsObject := &TeamsObject{Teams: actorTeams}
 	marshalledTeams, err := teamsObject.MarshalJSON()
 	if err != nil {
@@ -247,6 +274,7 @@ func (a *Actor) GetActorTeams() (string, error) {
 
 	return string(marshalledTeams), nil
 }
+
 
 // GetActorTasks retrieves all tasks associated with an actor
 func (a *Actor) GetActorTasks() (string, error) {
@@ -272,7 +300,6 @@ func (a *Actor) GetActorTasks() (string, error) {
 
     return string(marshalledTasks), nil
 }
-
 
 // GetActorProjects retrieves all projects associated with an actor
 func (a *Actor) GetActorProjects() (string, error) {

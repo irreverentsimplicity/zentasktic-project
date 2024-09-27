@@ -55,12 +55,6 @@ type Actor struct {
 	Address std.Address `json:"actorAddress"`
 }
 
-type Team struct {
-	Id      string   `json:"teamId"`
-	Name    string   `json:"teamName"`
-	Members []string `json:"teamMembers"`
-}
-
 type WorkDuration struct {
 	Id				string `json:"workDurationId"`
     ObjectId 		string `json:"objectId"`

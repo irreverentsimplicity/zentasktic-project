@@ -1,79 +1,112 @@
 package zentasktic_project
 
-
 import (
-	"strconv"
+    "errors"
+    "strconv"
+    "gno.land/p/demo/users"
+    "gno.land/p/demo/avl"
+    "gno.land/p/demo/zentasktic"
+    "gno.land/p/demo/zteams"
+    "std"
 )
 
-// this is a convenience wrapper on top of the functions declared in the teams file
-
-
-var currentTeamID int
+var (
+    currentTeamID int
+)
 
 func init() {
-	currentTeamID = 0
+    currentTeamID = 0
 }
 
-// teams
-
+// Wrapper function to add a team
 func AddTeamWrap(teamName string) error {
-	teamID := incrementTeamID()
-	t := &Team{
-		Id:          strconv.Itoa(teamID),
-		Name:        teamName,
-	}
-	return t.AddTeam()
+    teamID := incrementTeamID()
+    team := &zteams.Team{
+        Address:  std.Address(strconv.Itoa(teamID)), // Converting ID to address for demo purposes
+        TeamName: teamName,
+        Owner:    std.Address("OwnerAddress"), // Placeholder for owner address, update as needed
+    }
+    return TeamManager.AddTeam(team)
 }
 
-
+// Wrapper function to edit a team
 func EditTeamWrap(teamId string, teamName string) error {
-	teamToEdit, err := GetTeamById(teamId)
-	if err != nil {
-		return err	
-	}
-	teamToEdit.Name = teamName;
-	return teamToEdit.EditTeam()
+    team, err := TeamManager.getTeam(std.Address(teamId))
+    if err != nil {
+        return err
+    }
+    team.TeamName = teamName
+    TeamManager.Teams.Set(team.Address.String(), team)
+    return nil
 }
 
+// Wrapper function to remove a team
 func RemoveTeamWrap(teamId string) error {
-	teamToRemove, err := GetTeamById(teamId)
-	if err != nil {
-		return err
-	}
-	return teamToRemove.RemoveTeam()
+    team, err := TeamManager.getTeam(std.Address(teamId))
+    if err != nil {
+        return err
+    }
+    TeamManager.Teams.Remove(team.Address.String())
+    TeamManager.Members.Remove(team.Address.String())
+    return nil
 }
 
+// Wrapper function to assign a task to a team
 func AssignTeamToTaskWrap(teamId string, taskId string) error {
-	team, err := GetTeamById(teamId)
-	if err != nil {
-		// err != nil means we couldn't find a team
-		return err
-	}
+    team, err := TeamManager.getTeam(std.Address(teamId))
+    if err != nil {
+        return err
+    }
+    
+    task, terr := GetTaskById(taskId) // Assuming existing task fetching logic
+    if terr != nil {
+        return terr
+    }
 
-	task, terr := GetTaskById(taskId)
-	if terr != nil {
-		return terr
-	}
-
-	return team.AssignTeamToTask(task)
+    tasks, _ := TeamTasks.Get(team.Address.String())
+    var updatedTasks []WorkableTask
+    if tasks != nil {
+        updatedTasks = tasks.([]WorkableTask)
+    }
+    for _, existingTask := range updatedTasks {
+        if existingTask.Id == task.Id {
+            return nil // Task already assigned to team
+        }
+    }
+    updatedTasks = append(updatedTasks, task)
+    TeamTasks.Set(team.Address.String(), updatedTasks)
+    return nil
 }
 
+// Wrapper function to unassign a task from a team
 func UnassignTeamFromTaskWrap(teamId string, taskId string) error {
-	team, err := GetTeamById(teamId)
-	if err != nil {
-		// err != nil means we couldn't find a team
-		return err
-	}
+    team, err := TeamManager.getTeam(std.Address(teamId))
+    if err != nil {
+        return err
+    }
 
-	task, terr := GetTaskById(taskId)
-	if terr != nil {
-		return terr
-	}
+    tasks, exist := TeamTasks.Get(team.Address.String())
+    if !exist {
+        return errors.New("team task not found")
+    }
 
-	return team.UnassignTeamFromTask(task)
+    updatedTasks := tasks.([]WorkableTask)
+    for i, task := range updatedTasks {
+        if task.Id == taskId {
+            updatedTasks = append(updatedTasks[:i], updatedTasks[i+1:]...)
+            if len(updatedTasks) == 0 {
+                TeamTasks.Remove(team.Address.String())
+            } else {
+                TeamTasks.Set(team.Address.String(), updatedTasks)
+            }
+            return nil
+        }
+    }
+    return errors.New("team task not found")
 }
 
+// Wrapper function to increment team ID (legacy)
 func incrementTeamID() int {
-	currentTeamID++
-	return currentTeamID
+    currentTeamID++
+    return currentTeamID
 }

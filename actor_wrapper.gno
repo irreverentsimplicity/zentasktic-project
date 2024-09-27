@@ -17,57 +17,67 @@ func init() {
 
 // users
 
+// Wrapper function to add an Actor
 func AddActorWrap(userName string, userAddress string) error {
 	userID := incrementUserID()
-	a := &Actor{
-		Id:          strconv.Itoa(userID),
-		Name:        userName,
-		Address: 	 std.Address(userAddress),
+	actor := &Actor{
+		Id:      strconv.Itoa(userID),
+		Name:    userName,
+		Address: std.Address(userAddress),
 	}
-	return a.AddActor()
+	// Logic to store the Actor within zentasktic_project as needed
+	return actor.AddActor()
 }
 
-
+// Wrapper function to edit an Actor
 func EditActorWrap(userId string, userName string, userAddress string) error {
-	userToEdit, err := GetActorById(userId)
+	actor, err := GetActorById(userId)
 	if err != nil {
-		return err	
+		return err
 	}
-	userToEdit.Name = userName;
-	userToEdit.Address = std.Address(userAddress);
-	return userToEdit.EditActor()
+	actor.Name = userName
+	actor.Address = std.Address(userAddress)
+	// Logic to update the Actor within zentasktic_project as needed
+	return actor.EditActor()
 }
 
+// Wrapper function to remove an Actor
 func RemoveActorWrap(userId string) error {
-	userToRemove, err := GetActorById(userId)
+	actor, err := GetActorById(userId)
 	if err != nil {
 		return err
 	}
-	return userToRemove.RemoveActor()
+	// Logic to remove the Actor within zentasktic_project as needed
+	return actor.RemoveActor()
 }
 
+// Wrapper function to add an Actor to a team using zteams
 func AddActorToTeamWrap(userId string, teamId string) error {
-	userToAdd, err := GetActorById(userId)
+	actor, err := GetActorById(userId)
 	if err != nil {
 		return err
 	}
-	teamToAddTo, terr := GetTeamById(teamId)
+	team, terr := TeamManager.getTeam(std.Address(teamId))
 	if terr != nil {
 		return terr
 	}
-	return userToAdd.AddActorToTeam(teamToAddTo)
+	// Convert Actor to zteams User and add to the team
+	user := actor.ToUser()
+	return TeamManager.AddUserToTeam(team.Address, user, team.Owner)
 }
 
+// Wrapper function to remove an Actor from a team using zteams
 func RemoveActorFromTeamWrap(userId string, teamId string) error {
-	userToRemove, err := GetActorById(userId)
+	actor, err := GetActorById(userId)
 	if err != nil {
 		return err
 	}
-	teamToRemoveFrom, terr := GetTeamById(teamId)
+	team, terr := TeamManager.getTeam(std.Address(teamId))
 	if terr != nil {
 		return terr
 	}
-	return userToRemove.RemoveActorFromTeam(teamToRemoveFrom)
+	// Convert Actor to zteams User and remove from the team
+	return TeamManager.RemoveUserFromTeam(team.Address, actor.Address, team.Owner)
 }
 
 func incrementUserID() int {
