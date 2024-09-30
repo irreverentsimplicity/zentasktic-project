@@ -7,6 +7,7 @@ import (
 	"gno.land/p/demo/zentasktic"
 )
 
+/*
 func Test_AddTeam(t *testing.T) {
 	team4 := Team{Id: "team4", Name: "Team Four", Members: []*Actor{},}
 
@@ -356,7 +357,7 @@ func Test_GetAllTeams(t *testing.T) {
 			t.Errorf("Expected %s, got %s", expected, teams)
 		}
 	})
-}
+}*/
 
 
 

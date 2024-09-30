@@ -4,32 +4,45 @@ import (
 	"testing"
 	"std"
 
-    "gno.land/p/demo/avl"
+	"gno.land/p/demo/avl"
 	"gno.land/p/demo/zentasktic"
 )
 
 func Test_AddRewardsPoints(t *testing.T) {
+	// Explicitly set field names when creating struct instances
+	testCoin := std.NewCoin("ugnot", 100)
+	point := RewardsPoint{
+		Id:         "1",
+		ObjectId:   "task1",
+		ObjectType: "task",
+		Amount:     testCoin,
+		Status:     "Allocated",
+	}
 
-    point := RewardsPoint{Id: "1", ObjectId: "task1", ObjectType: "task", Amount: std.Coins{{Denom: "ugnot",  Amount: 100}}, Status: "Allocated",}
+	// Test adding a rewards point successfully.
+	err := point.AddRewardsPoints()
+	if err != nil {
+		t.Errorf("Failed to add rewards points: %v", err)
+	}
 
-    // Test adding a rewards point successfully.
-    err := point.AddRewardsPoints()
-    if err != nil {
-        t.Errorf("Failed to add rewards points: %v", err)
-    }
-
-    // Test adding a duplicate rewards points object.
-    cerr := point.AddRewardsPoints()
-    if cerr != ErrRewardsPointIdAlreadyExists {
-        t.Errorf("Expected ErrRewardsPointIdAlreadyExists, got %v", cerr)
-    }
+	// Test adding a duplicate rewards points object.
+	cerr := point.AddRewardsPoints()
+	if cerr != ErrRewardsPointIdAlreadyExists {
+		t.Errorf("Expected ErrRewardsPointIdAlreadyExists, got %v", cerr)
+	}
 }
 
 func Test_UpdateRewardsPoints(t *testing.T) {
-	
-	// Test editing an existing payment
 	t.Run("Edit existing rewards points", func(t *testing.T) {
-		updatedRPoints := RewardsPoint{Id: "1", ObjectId: "task1", ObjectType: "task", Amount: std.Coins{{Denom: "ugnot",  Amount: 100}}, Status: "Disbursed",}
+		// Explicitly set field names when creating struct instances
+		updatedCoin := std.NewCoin("ugnot", 100)
+		updatedRPoints := RewardsPoint{
+			Id:         "1",
+			ObjectId:   "task1",
+			ObjectType: "task",
+			Amount:     updatedCoin,
+			Status:     "Disbursed",
+		}
 		err := updatedRPoints.UpdateRewardsPoints()
 		if err != nil {
 			t.Errorf("expected no error, got %v", err)
@@ -40,14 +53,21 @@ func Test_UpdateRewardsPoints(t *testing.T) {
 		if !exist {
 			t.Errorf("expected rewards points to exist")
 		}
-		if editedRPoints.(RewardsPoint).ObjectId != "task1" {
-			t.Errorf("expected rewards points status to be 'Disbursed', got %s", editedRPoints.(RewardsPoint).ObjectId)
+		if editedRPoints.(RewardsPoint).Status != "Disbursed" {
+			t.Errorf("expected rewards points status to be 'Disbursed', got %s", editedRPoints.(RewardsPoint).Status)
 		}
 	})
 
-	// Test editing a non-existing rewards point
 	t.Run("Edit non-existing rewards point object", func(t *testing.T) {
-		nonExistingRP := RewardsPoint{Id: "999", ObjectId: "non-existing", ObjectType: "non-existing", Amount: std.Coins{{Denom: "non-existing",  Amount: 100}}, Status: "non-existing",}
+		// Explicitly set field names when creating struct instances
+		testCoin2 := std.NewCoin("non-existing", 100)
+		nonExistingRP := RewardsPoint{
+			Id:         "999",
+			ObjectId:   "non-existing",
+			ObjectType: "non-existing",
+			Amount:     testCoin2,
+			Status:     "non-existing",
+		}
 		err := nonExistingRP.UpdateRewardsPoints()
 		if err != ErrRewardsPointIdNotFound {
 			t.Errorf("expected error %v, got %v", ErrRewardsPointIdNotFound, err)
@@ -56,14 +76,19 @@ func Test_UpdateRewardsPoints(t *testing.T) {
 }
 
 func Test_RemoveRewardsPoints(t *testing.T) {
-	
 	rpId := "2"
-	point := RewardsPoint{Id: rpId, ObjectId: "project1", ObjectType: "project", Amount: std.Coins{{Denom: "ugnot",  Amount: 400}}, Status: "Allocated",}
-	
-	// Test removing a rewards point
+	testCoin3 := std.NewCoin("ugnot", 400)
+	point := RewardsPoint{
+		Id:         rpId,
+		ObjectId:   "project1",
+		ObjectType: "project",
+		Amount:     testCoin3,
+		Status:     "Allocated",
+	}
+
 	t.Run("Remove existing rewards point", func(t *testing.T) {
-        // setting up the environment
-        point.AddRewardsPoints()
+		// setting up the environment
+		point.AddRewardsPoints()
 
 		err := point.RemoveRewardsPoints()
 		if err != nil {
@@ -71,9 +96,15 @@ func Test_RemoveRewardsPoints(t *testing.T) {
 		}
 	})
 
-	// Test removing a rewards point that does not exist
 	t.Run("Remove non-existing rewards point object", func(t *testing.T) {
-		nonExistingRP := RewardsPoint{Id: "999", ObjectId: "non-existing", ObjectType: "non-existing", Amount: std.Coins{{Denom: "non-existing",  Amount: 100}}, Status: "non-existing",}
+		testCoin4 := std.NewCoin("non-existing", 100)
+		nonExistingRP := RewardsPoint{
+			Id:         "999",
+			ObjectId:   "non-existing",
+			ObjectType: "non-existing",
+			Amount:     testCoin4,
+			Status:     "non-existing",
+		}
 		err := nonExistingRP.RemoveRewardsPoints()
 		if err != ErrRewardsPointIdNotFound {
 			t.Errorf("Expected error %v, got %v", ErrRewardsPointIdNotFound, err)
@@ -82,9 +113,18 @@ func Test_RemoveRewardsPoints(t *testing.T) {
 }
 
 func Test_GetRewardsPointsByOjectId(t *testing.T) {
+	testCoin5 := std.NewCoin("ugnot", 100)
+	point := RewardsPoint{
+		Id:         "1",
+		ObjectId:   "task1",
+		ObjectType: "task",
+		Amount:     testCoin5,
+		Status:     "Disbursed",
+	}
 
-	point := RewardsPoint{Id: "1", ObjectId: "task1", ObjectType: "task", Amount: std.Coins{{Denom: "ugnot",  Amount: 100}}, Status: "Disbursed"}
-	
+	// Ensure the point is added for retrieval
+	point.AddRewardsPoints()
+
 	result, err := GetRewardsPointsByOjectId("task1", "task")
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
@@ -105,94 +145,74 @@ func Test_GetRewardsPointsByOjectId(t *testing.T) {
 	}
 }
 
-func Test_GetAllRewardsPoints(t *testing.T){
-
-	// Initialize test data
+func Test_GetAllRewardsPoints(t *testing.T) {
+	testCoin6 := std.NewCoin("ugnot", 100)
+	testCoin7 := std.NewCoin("ugnot", 30)
 	point1 := RewardsPoint{
 		Id:         "1",
 		ObjectId:   "task1",
 		ObjectType: "task",
-		Amount:     std.Coins{{Denom: "token", Amount: 20}},
+		Amount:     testCoin6,
 		Status:     "Disbursed",
 	}
 	point2 := RewardsPoint{
 		Id:         "2",
 		ObjectId:   "task2",
 		ObjectType: "task",
-		Amount:     std.Coins{{Denom: "token", Amount: 30}},
+		Amount:     testCoin7,
 		Status:     "Assigned",
 	}
 
-	point1.AddRewardsPoints()
 	point2.AddRewardsPoints()
 
-	// Test the function
-	result, err := GetAllRewardsPoints()
-	if err != nil {
-		t.Fatalf("Expected no error, got %v", err)
-	}
+	result := GetAllRewardsPoints()
+	
 
-	// Define the expected result
-	expectedResult := `{"rewardsPoints":[{"rewardsPointId":"1","objectId":"task1","objectType":"task","rewardsPointsAmount":"100ugnot","rewardsPointsStatus":"Disbursed"},{"rewardsPointId":"2","objectId":"task2","objectType":"task","rewardsPointsAmount":"30token","rewardsPointsStatus":"Assigned"}]}`
+	expectedResult := `{"rewardsPoints":[{"rewardsPointId":"1","objectId":"task1","objectType":"task","rewardsPointsAmount":"100ugnot","rewardsPointsStatus":"Disbursed"},{"rewardsPointId":"2","objectId":"task2","objectType":"task","rewardsPointsAmount":"30ugnot","rewardsPointsStatus":"Assigned"}]}`
 	if result != expectedResult {
 		t.Errorf("Expected %v, got %v", expectedResult, result)
 	}
 
 	// Test with no rewards points
-	point1.RemoveRewardsPoints()
-	point2.RemoveRewardsPoints()
 	
-	result, err = GetAllRewardsPoints()
-	if err != nil {
-		t.Fatalf("Expected no error, got %v", err)
-	}
+	point2.RemoveRewardsPoints()
+	point1.RemoveRewardsPoints()
+
+	result = GetAllRewardsPoints()
+	
 	if result != `{"rewardsPoints":[]}` {
 		t.Errorf("Expected empty rewards points, got %v", result)
 	}
 }
 
 func Test_GetTotalRewardsPoints(t *testing.T) {
-	
-	// Add test data to the RewardsPoints tree.
+	testCoin8 := std.NewCoin("ugnot", 10)
+	testCoin9 := std.NewCoin("ugnot", 20)
 	rewardsPoint1 := RewardsPoint{
 		Id:         "1",
 		ObjectId:   "task1",
 		ObjectType: "task",
-		Amount:     std.Coins{{Denom: "token", Amount: 10}},
+		Amount:     testCoin8,
 		Status:     "Disbursed",
 	}
 	rewardsPoint2 := RewardsPoint{
 		Id:         "2",
 		ObjectId:   "task2",
 		ObjectType: "task",
-		Amount:     std.Coins{{Denom: "token", Amount: 20}},
+		Amount:     testCoin9,
 		Status:     "Disbursed",
 	}
 
 	rewardsPoint1.AddRewardsPoints()
 	rewardsPoint2.AddRewardsPoints()
 
-	// Call the GetTotalRewardsPoints function.
 	totalRewardsPoints, err := GetTotalRewardsPoints()
 	if err != nil {
 		t.Errorf("Failed to get total rewards points: %v", err)
 	}
 
-	// Check if the total rewards points is correct.
-	expectedTotal := std.Coins{{Denom: "token", Amount: 30}}
+	expectedTotal := std.NewCoin("ugnot", 30)
 	if !totalRewardsPoints.IsEqual(expectedTotal) {
-		t.Errorf("Expected total rewards points to be %v, but got %v", totalRewardsPoints, expectedTotal)
+		t.Errorf("Expected total rewards points to be %v, but got %v", expectedTotal, totalRewardsPoints)
 	}
-}
-
-func (coins std.Coins) IsEqual(other std.Coins) bool {
-	if len(coins) != len(other) {
-		return false
-	}
-	for i := range coins {
-		if coins[i].Denom != other[i].Denom || coins[i].Amount != other[i].Amount {
-			return false
-		}
-	}
-	return true
 }

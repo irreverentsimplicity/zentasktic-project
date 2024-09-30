@@ -31,7 +31,7 @@ func AddTeamWrap(teamName string) error {
 
 // Wrapper function to edit a team
 func EditTeamWrap(teamId string, teamName string) error {
-    team, err := TeamManager.getTeam(std.Address(teamId))
+    team, err := TeamManager.GetTeam(std.Address(teamId))
     if err != nil {
         return err
     }
@@ -42,7 +42,7 @@ func EditTeamWrap(teamId string, teamName string) error {
 
 // Wrapper function to remove a team
 func RemoveTeamWrap(teamId string) error {
-    team, err := TeamManager.getTeam(std.Address(teamId))
+    team, err := TeamManager.GetTeam(std.Address(teamId))
     if err != nil {
         return err
     }
@@ -53,7 +53,7 @@ func RemoveTeamWrap(teamId string) error {
 
 // Wrapper function to assign a task to a team
 func AssignTeamToTaskWrap(teamId string, taskId string) error {
-    team, err := TeamManager.getTeam(std.Address(teamId))
+    team, err := TeamManager.GetTeam(std.Address(teamId))
     if err != nil {
         return err
     }
@@ -80,7 +80,7 @@ func AssignTeamToTaskWrap(teamId string, taskId string) error {
 
 // Wrapper function to unassign a task from a team
 func UnassignTeamFromTaskWrap(teamId string, taskId string) error {
-    team, err := TeamManager.getTeam(std.Address(teamId))
+    team, err := TeamManager.GetTeam(std.Address(teamId))
     if err != nil {
         return err
     }

@@ -57,7 +57,7 @@ func AddActorToTeamWrap(userId string, teamId string) error {
 	if err != nil {
 		return err
 	}
-	team, terr := TeamManager.getTeam(std.Address(teamId))
+	team, terr := TeamManager.GetTeam(std.Address(teamId))
 	if terr != nil {
 		return terr
 	}
@@ -72,7 +72,7 @@ func RemoveActorFromTeamWrap(userId string, teamId string) error {
 	if err != nil {
 		return err
 	}
-	team, terr := TeamManager.getTeam(std.Address(teamId))
+	team, terr := TeamManager.GetTeam(std.Address(teamId))
 	if terr != nil {
 		return terr
 	}

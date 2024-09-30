@@ -3,6 +3,9 @@ package zentasktic_project
 import (
 	"bytes"
 	"gno.land/p/demo/zentasktic"
+	"gno.land/p/demo/zteams"
+	"errors"
+	"std"
 )
 
 type ActorsObject struct {
@@ -10,7 +13,7 @@ type ActorsObject struct {
 }
 
 type TeamsObject struct {
-	Teams	[]*Team
+	Teams	[]*zteams.Team
 }
 
 type TeamTasksObject struct {
@@ -71,36 +74,43 @@ func (ao ActorsObject) MarshalJSON() ([]byte, error) {
 	return b.Bytes(), nil
 }
 
-func (t Team) MarshalJSON() ([]byte, error) {
-
+// MarshalJSON marshals a zteams.Team into JSON format
+func (t *zteams.Team) MarshalJSON() ([]byte, error) {
 	var b bytes.Buffer
-	//if t == nil {
-    //    return nil, errors.New("team is nil")
-    //}
-	
+
+	// Check if the team is nil
+	if t == nil {
+		return nil, errors.New("team is nil")
+	}
+
 	b.WriteByte('{')
 
+	// Marshal the team address as the team ID
 	b.WriteString(`"teamId":"`)
-	b.WriteString(t.Id)
+	b.WriteString(t.Address.String())
 	b.WriteString(`",`)
 
+	// Marshal the team name
 	b.WriteString(`"teamName":"`)
-	b.WriteString(t.Name)
+	b.WriteString(t.TeamName)
 	b.WriteString(`",`)
 
+	// Marshal the team members
 	b.WriteString(`"teamMembers":[`)
 
-	if len(t.Members) != 0 {
-		for i, actorId := range t.Members {
+	// Retrieve all members of the team using TeamManager
+	members, err := TeamManager.GetAllUsersInTeam(t.Address)
+	if err == nil && len(members) > 0 {
+		for i, member := range members {
 			if i > 0 {
 				b.WriteString(`,`)
 			}
-			actor, err := GetActorById(actorId)
-			if err == nil {
-				teamMemberJSON, perr := actor.MarshalJSON()
-				if perr == nil {
-					b.WriteString(string(teamMemberJSON))
-				}
+
+			// Convert zteams.User to Actor (if needed) and marshal it
+			actor := FromUser(member)
+			teamMemberJSON, perr := actor.MarshalJSON()
+			if perr == nil {
+				b.WriteString(string(teamMemberJSON))
 			}
 		}
 	}

@@ -3,50 +3,14 @@ package zentasktic_project
 import (
 	"errors"
 	"gno.land/p/demo/zentasktic"
+	"gno.land/p/demo/zteams"
+	"std"
 )
 
-// AddTeam adds a new team to the Teams tree
-func (t *Team) AddTeam() error {
-	if _, terr := GetTeamById(t.Id); terr == nil {
-		// terr == nil means we found a team
-		return errors.New("team ID already exists")
-	}
-	Teams.Set(t.Id, t)
-	return nil
-}
-
-// RemoveTeam removes a team from the Teams tree and cleans up associated data
-func (t *Team) RemoveTeam() error {
-	// Check if the team exists
-	team, terr := GetTeamById(t.Id)
-	if terr != nil {
-		return errors.New("team ID not found")
-	}
-
-	// Remove the team from the Teams tree
-	Teams.Remove(team.Id)
-	// Remove the team's tasks and projects
-	TeamTasks.Remove(team.Id)
-	TeamProjects.Remove(team.Id)
-
-	return nil
-}
-
-
-// EditTeam updates an existing team's details in the Teams tree
-func (t *Team) EditTeam() error {
-	_, terr := GetTeamById(t.Id)
-	if terr != nil {
-		return errors.New("team ID not found")
-	}
-	Teams.Set(t.Id, t)
-	return nil
-}
-
 // AssignTeamToTask assigns a task to a team
-func (t *Team) AssignTeamToTask(wt WorkableTask) error {
+func (t *zteams.Team) AssignTeamToTask(wt WorkableTask) error {
 	// Add the task to the team's task list
-	tasks, _ := TeamTasks.Get(t.Id)
+	tasks, _ := TeamTasks.Get(t.Address.String())
 	var updatedTasks []WorkableTask
 	if tasks != nil {
 		updatedTasks = tasks.([]WorkableTask)
@@ -57,13 +21,13 @@ func (t *Team) AssignTeamToTask(wt WorkableTask) error {
 		}
 	}
 	updatedTasks = append(updatedTasks, wt)
-	TeamTasks.Set(t.Id, updatedTasks)
+	TeamTasks.Set(t.Address.String(), updatedTasks)
 	return nil
 }
 
 // UnassignTeamFromTask unassigns a task from a team
-func (t *Team) UnassignTeamFromTask(wt WorkableTask) error {
-	tasks, exist := TeamTasks.Get(t.Id)
+func (t *zteams.Team) UnassignTeamFromTask(wt WorkableTask) error {
+	tasks, exist := TeamTasks.Get(t.Address.String())
 	if !exist {
 		return errors.New("team task not found")
 	}
@@ -73,9 +37,9 @@ func (t *Team) UnassignTeamFromTask(wt WorkableTask) error {
 		if task.Id == wt.Id {
 			updatedTasks = append(updatedTasks[:i], updatedTasks[i+1:]...)
 			if len(updatedTasks) == 0 {
-				TeamTasks.Remove(t.Id)
+				TeamTasks.Remove(t.Address.String())
 			} else {
-				TeamTasks.Set(t.Id, updatedTasks)
+				TeamTasks.Set(t.Address.String(), updatedTasks)
 			}
 			return nil
 		}
@@ -84,9 +48,9 @@ func (t *Team) UnassignTeamFromTask(wt WorkableTask) error {
 }
 
 // AssignTeamToProject assigns a project to a team
-func (t *Team) AssignTeamToProject(wp *WorkableProject) error {
+func (t *zteams.Team) AssignTeamToProject(wp *WorkableProject) error {
 	// Add the project to the team's project list
-	projects, _ := TeamProjects.Get(t.Id)
+	projects, _ := TeamProjects.Get(t.Address.String())
 	var updatedProjects []*WorkableProject
 	if projects != nil {
 		updatedProjects = projects.([]*WorkableProject)
@@ -97,13 +61,13 @@ func (t *Team) AssignTeamToProject(wp *WorkableProject) error {
 		}
 	}
 	updatedProjects = append(updatedProjects, wp)
-	TeamProjects.Set(t.Id, updatedProjects)
+	TeamProjects.Set(t.Address.String(), updatedProjects)
 	return nil
 }
 
 // UnassignTeamFromProject unassigns a project from a team
-func (t *Team) UnassignTeamFromProject(wp *WorkableProject) error {
-	projects, exist := TeamProjects.Get(t.Id)
+func (t *zteams.Team) UnassignTeamFromProject(wp *WorkableProject) error {
+	projects, exist := TeamProjects.Get(t.Address.String())
 	if !exist {
 		return errors.New("team project not found")
 	}
@@ -113,9 +77,9 @@ func (t *Team) UnassignTeamFromProject(wp *WorkableProject) error {
 		if project.Id == wp.Id {
 			updatedProjects = append(updatedProjects[:i], updatedProjects[i+1:]...)
 			if len(updatedProjects) == 0 {
-				TeamProjects.Remove(t.Id)
+				TeamProjects.Remove(t.Address.String())
 			} else {
-				TeamProjects.Set(t.Id, updatedProjects)
+				TeamProjects.Set(t.Address.String(), updatedProjects)
 			}
 			return nil
 		}
@@ -123,23 +87,30 @@ func (t *Team) UnassignTeamFromProject(wp *WorkableProject) error {
 	return errors.New("team project not found")
 }
 
-// GetTeamById retrieves a team by ID
-func GetTeamById(teamId string) (*Team, error) {
-	team, exist := Teams.Get(teamId)
-	if exist {
-		return team.(*Team), nil
+// GetTeamById retrieves a team by ID using TeamManager
+func GetTeamById(teamId string) (*zteams.Team, error) {
+	// Convert the teamId string to a std.Address format used by TeamManager
+	teamAddress := std.Address(teamId)
+	
+	// Use TeamManager to get the team by its address
+	team, err := TeamManager.GetTeam(teamAddress)
+	if err != nil {
+		return nil, errors.New("team ID not found")
 	}
-	return nil, errors.New("team ID not found")
+	return team, nil
 }
 
-// GetAllTeams retrieves all teams and returns them as a JSON string
+// GetAllTeams retrieves all teams and returns them as a JSON string using TeamManager
 func GetAllTeams() string {
-	teams := make([]*Team, 0)
-	Teams.Iterate("", "", func(key string, value interface{}) bool {
-		teams = append(teams, value.(*Team))
+	teams := make([]*zteams.Team, 0)
+
+	// Iterate over all teams managed by TeamManager
+	TeamManager.Teams.Iterate("", "", func(key string, value interface{}) bool {
+		teams = append(teams, value.(*zteams.Team))
 		return false // Continue iteration
 	})
 
+	// Create a TeamsObject to marshal the list of teams into JSON
 	teamsObject := &TeamsObject{Teams: teams}
 	marshalledTeams, err := teamsObject.MarshalJSON()
 	if err != nil {
@@ -150,8 +121,8 @@ func GetAllTeams() string {
 
 
 // GetTeamTasks retrieves all tasks associated with a team
-func (t *Team) GetTeamTasks() (string, error) {
-	tasks, exist := TeamTasks.Get(t.Id)
+func (t *zteams.Team) GetTeamTasks() (string, error) {
+	tasks, exist := TeamTasks.Get(t.Address.String())
 	if !exist {
 		return "", errors.New("team tasks not found")
 	}
@@ -170,8 +141,8 @@ func (t *Team) GetTeamTasks() (string, error) {
 }
 
 // GetTeamProjects retrieves all projects associated with a team
-func (t *Team) GetTeamProjects() (string, error) {
-	projects, exist := TeamProjects.Get(t.Id)
+func (t *zteams.Team) GetTeamProjects() (string, error) {
+	projects, exist := TeamProjects.Get(t.Address.String())
 	if !exist {
 		return "", errors.New("team projects not found")
 	}

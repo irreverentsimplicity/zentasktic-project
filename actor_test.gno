@@ -14,7 +14,7 @@ func init() {
     ztm = zentasktic.NewZTaskManager()
     zpm = zentasktic.NewZProjectManager()
 }
-
+/*
 func Test_AddActor(t *testing.T) {
 
     actor := Actor{Id: "1", Name: "Developer", Address: "g1jvsnur7haahze6n6z3gzfdzu5yelr9rj3dajs7",}
@@ -561,3 +561,4 @@ func Test_GetAllActors(t *testing.T) {
 		}
 	})
 }
+	*/

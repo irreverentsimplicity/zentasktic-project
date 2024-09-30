@@ -2,6 +2,7 @@ package zentasktic_project
 
 import (
 	"std"
+	"errors"
 )
 
 func (rp RewardsPoint) AddRewardsPoints() (err error) { 
@@ -91,16 +92,35 @@ func GetAllRewardsPoints() (rewardsPoints string){
 	return string(marshalledRwardsPoints)
 }
 
-func GetTotalRewardsPoints() (totalAmount std.Coin, err error){
-		total := std.Coin{}
+func GetTotalRewardsPoints() (std.Coin, error) {
+    var total std.Coin
+	var err error
 
-		// Iterate over the RewardPoints AVL tree to find matching ObjectId and ObjectType records.
-		RewardsPoints.Iterate("", "", func(key string, value interface{}) bool {
-				if rewardsPointsItem, ok := value.(RewardsPoint); ok {
-						total = total.Add(rewardsPointsItem.Amount)
-				}
-				return false // Continue iteration until all nodes have been visited.
-		})
+    // Iterate over the RewardPoints AVL tree to sum up the coin amounts.
+    RewardsPoints.Iterate("", "", func(key string, value interface{}) bool {
+        if rewardsPointsItem, ok := value.(RewardsPoint); ok {
+            // If total is uninitialized (i.e., no coins added yet), set it to the first coin.
+            if total.Denom == "" {
+                total = rewardsPointsItem.Amount
+            } else {
+                // Check if the denominations match before adding the amounts.
+                if total.Denom == rewardsPointsItem.Amount.Denom {
+                    total.Amount += rewardsPointsItem.Amount.Amount
+                } else {
+                    // Return an error for incompatible denominations.
+                    err = errors.New("incompatible coin denominations: " + total.Denom + " vs " + rewardsPointsItem.Amount.Denom)
+                    return true // Stop iteration on error
+                }
+            }
+        }
+        return false // Continue iteration
+    })
 
-		return total, nil
+    if err != nil {
+        return std.Coin{}, err
+    }
+
+    return total, nil
 }
+
+

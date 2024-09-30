@@ -72,56 +72,6 @@ func (a *Actor) EditActor() error {
 	return nil
 }
 
-/*
-func (a *Actor) AddActorToTeam(t *Team) error {
-    // Check if the actor exists
-    _, err := GetActorById(a.Id)
-    if err != nil {
-        return errors.New("actor ID not found")
-    }
-
-    // Check if the team exists
-    existingTeam, terr := GetTeamById(t.Id)
-    if terr != nil {
-        return errors.New("team ID not found")
-    }
-
-    // Check if the actor is already a member of the team
-    for _, memberId := range existingTeam.Members {
-        if memberId == a.Id {
-            return nil // Actor is already a member of the team
-        }
-    }
-
-    // Add the actor's ID to the team
-    existingTeam.Members = append(existingTeam.Members, a.Id)
-    Teams.Set(existingTeam.Id, existingTeam) // Update the team in the tree
-    return nil
-}
-
-
-func (a *Actor) RemoveActorFromTeam(t *Team) error {
-    // Check if the team exists
-    existingTeam, terr := GetTeamById(t.Id)
-    if terr != nil {
-        return errors.New("team ID not found")
-    }
-
-    // Find and remove the actor's ID from the team's members list
-    for i, memberId := range existingTeam.Members {
-        if memberId == a.Id {
-            existingTeam.Members = append(existingTeam.Members[:i], existingTeam.Members[i+1:]...)
-            Teams.Set(existingTeam.Id, existingTeam) // Update the team in the tree
-            return nil
-        }
-    }
-
-    return errors.New("actor not found in team")
-}
-
-*/
-
-
 // AssignActorToTask assigns a task to an actor
 func (a *Actor) AssignActorToTask(wt *WorkableTask) error {
 	// Add the task to the actor's task list
@@ -274,7 +224,6 @@ func (a *Actor) GetActorTeams() (string, error) {
 
 	return string(marshalledTeams), nil
 }
-
 
 // GetActorTasks retrieves all tasks associated with an actor
 func (a *Actor) GetActorTasks() (string, error) {
