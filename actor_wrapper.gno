@@ -4,6 +4,7 @@ package zentasktic_project
 import (
 	"strconv"
 	"std"
+	"gno.land/p/demo/users"
 )
 
 // this is a convenience wrapper on top of the functions declared in the actors file
@@ -21,9 +22,11 @@ func init() {
 func AddActorWrap(userName string, userAddress string) error {
 	userID := incrementUserID()
 	actor := &Actor{
-		Id:      strconv.Itoa(userID),
-		Name:    userName,
-		Address: std.Address(userAddress),
+		Id: strconv.Itoa(userID),
+		User: users.User{    // Use embedded users.User directly
+			Name:    userName,
+			Address: std.Address(userAddress),
+		},
 	}
 	// Logic to store the Actor within zentasktic_project as needed
 	return actor.AddActor()
@@ -35,11 +38,13 @@ func EditActorWrap(userId string, userName string, userAddress string) error {
 	if err != nil {
 		return err
 	}
-	actor.Name = userName
-	actor.Address = std.Address(userAddress)
+	// Update fields on the embedded users.User struct
+	actor.User.Name = userName
+	actor.User.Address = std.Address(userAddress)
 	// Logic to update the Actor within zentasktic_project as needed
 	return actor.EditActor()
 }
+
 
 // Wrapper function to remove an Actor
 func RemoveActorWrap(userId string) error {

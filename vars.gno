@@ -3,6 +3,8 @@ package zentasktic_project
 import (
 	"gno.land/p/demo/avl"
 	"gno.land/p/demo/zteams"
+	"gno.land/p/demo/users"
+	"std"
 )
 
 // Initialize global variables
@@ -17,6 +19,9 @@ var (
 	WorkDurations  *avl.Tree        // wd.id -> wd
 	RewardsPoints  *avl.Tree        // rp.id -> rp
 	TeamManager    *zteams.TeamManager // Global TeamManager instance
+
+	// Global map to associate user address with actor ID
+	ActorIDMap     map[std.Address]string
 )
 
 func init() {
@@ -33,4 +38,7 @@ func init() {
 	
 	// Initialize TeamManager
 	TeamManager = zteams.NewTeamManager()
+
+	// Initialize the ActorIDMap
+	ActorIDMap = make(map[std.Address]string)
 }

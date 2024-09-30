@@ -9,19 +9,19 @@ import (
 
 // Converts an Actor to a zteams User for compatibility with TeamManager
 func (a *Actor) ToUser() users.User {
-	return users.User{
-		Name:    a.Name,
-		Address: a.Address,
-	}
+	// Since Actor embeds users.User, we can directly return the embedded User part
+	return a.User
 }
 
 // Converts a zteams User to an Actor for use within zentasktic_project
-func FromUser(u users.User) *Actor {
+// We can pass the Actor.Id explicitly, since it's not part of users.User
+func FromUser(u users.User, actorId string) *Actor {
 	return &Actor{
-		Name:    u.Name,
-		Address: u.Address,
+		Id: actorId,   // Retain the Actor.Id specific to zentasktic_project
+		User: u,       // Embedded users.User struct
 	}
 }
+
 
 // AddActor adds a new actor to the Actors tree
 func (a *Actor) AddActor() error {
@@ -30,6 +30,7 @@ func (a *Actor) AddActor() error {
 		return errors.New("actor ID already exists")
 	}
 	Actors.Set(a.Id, a)
+	ActorIDMap[a.Address] = a.Id
 	return nil
 }
 
@@ -45,11 +46,10 @@ func (a *Actor) RemoveActor() error {
 	Actors.Remove(a.Id)
 
 	// Use TeamManager to remove the actor from any teams they belong to
-	// Get all teams and check if the actor is a member, admin, or owner, and remove accordingly
 	TeamManager.Teams.Iterate("", "", func(key string, value interface{}) bool {
 		team := value.(*zteams.Team)
 		
-		// Remove the actor from the team if they are a member
+		// Remove the actor from the team using their address (from users.User)
 		_ = TeamManager.RemoveUserFromTeam(team.Address, a.Address, team.Owner)
 		return false // Continue iteration
 	})
@@ -60,6 +60,7 @@ func (a *Actor) RemoveActor() error {
 
 	return nil
 }
+
 
 // EditActor updates an existing actor's details in the Actors tree
 func (a *Actor) EditActor() error {
@@ -201,7 +202,7 @@ func (a *Actor) GetActorTeams() (string, error) {
 
 		// Check if the actor is a member of this team
 		for _, member := range members {
-			if member.Address == a.Address {
+			if member.Address == a.Address { // Compare with a.Address from users.User
 				// Wrap the team in TeamWrapper and add to actorTeams
 				actorTeams = append(actorTeams, &TeamWrapper{Team: team})
 				break
@@ -224,6 +225,7 @@ func (a *Actor) GetActorTeams() (string, error) {
 
 	return string(marshalledTeams), nil
 }
+
 
 
 // GetActorTasks retrieves all tasks associated with an actor

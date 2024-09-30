@@ -4,6 +4,7 @@ import (
 	"std"
 	"time"
 	"gno.land/p/demo/zentasktic"
+	"gno.land/p/demo/users"
 )
 
 // zentasktic package wrapped types
@@ -50,9 +51,8 @@ var _ Workable = &WorkableProject{}
 // zentasktic project specific types
 
 type Actor struct {
-	Id      string      `json:"actorId"`
-	Name    string      `json:"actorName"`
-	Address std.Address `json:"actorAddress"`
+	Id 				string `json:"actorId"` // ZenTasktic-specific field
+	users.User                   // Embedding the user.User type
 }
 
 type WorkDuration struct {

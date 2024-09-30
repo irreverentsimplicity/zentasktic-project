@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"gno.land/p/demo/zentasktic"
 	"gno.land/p/demo/zteams"
+	"gno.land/p/demo/users"
 	"errors"
 )
 
@@ -32,24 +33,24 @@ type RewardsPointsObject struct {
 	RewardsPoints	[]*RewardsPoint
 }
 
+// Custom MarshalJSON for Actor type
 func (a Actor) MarshalJSON() ([]byte, error) {
-
 	var b bytes.Buffer
-	//if a == nil {
-    //    return nil, errors.New("actor is nil")
-    //}
 	b.WriteByte('{')
 
+	// Marshal the Actor.Id (specific to zentasktic_project)
 	b.WriteString(`"actorId":"`)
 	b.WriteString(a.Id)
 	b.WriteString(`",`)
 
+	// Marshal the Name from embedded users.User
 	b.WriteString(`"actorName":"`)
-	b.WriteString(a.Name)
+	b.WriteString(a.User.Name)
 	b.WriteString(`",`)
 
+	// Marshal the Address from embedded users.User
 	b.WriteString(`"actorAddress":"`)
-	b.WriteString(string(a.Address))
+	b.WriteString(string(a.User.Address))
 	b.WriteString(`"`)
 
 	b.WriteByte('}')
@@ -57,25 +58,28 @@ func (a Actor) MarshalJSON() ([]byte, error) {
 	return b.Bytes(), nil
 }
 
+
+// Custom MarshalJSON for ActorsObject type
 func (ao ActorsObject) MarshalJSON() ([]byte, error) {
 	var b bytes.Buffer
 
 	b.WriteString(`{"actors":[`)
-	
 	for i, actor := range ao.Actors {
 		if i > 0 {
 			b.WriteString(`,`)
 		}
-		actorJSON, cerr := actor.MarshalJSON()
-		if cerr == nil {
+
+		// Marshal each actor using the custom Actor.MarshalJSON
+		actorJSON, err := actor.MarshalJSON()
+		if err == nil {
 			b.WriteString(string(actorJSON))
 		}
 	}
-
 	b.WriteString(`]}`)
 
 	return b.Bytes(), nil
 }
+
 
 // MarshalJSON marshals a zteams.Team into JSON format
 func (tw *TeamWrapper) MarshalJSON() ([]byte, error) {
@@ -109,8 +113,17 @@ func (tw *TeamWrapper) MarshalJSON() ([]byte, error) {
 				b.WriteString(`,`)
 			}
 
-			// Convert zteams.User to Actor (if needed) and marshal it
-			actor := FromUser(member)
+			// Retrieve actorId from ActorIDMap using the member's address
+			actorId, ok := ActorIDMap[member.Address]
+			if !ok {
+				// Handle the case where actorId is not found
+				actorId = "unknown" // or handle the error as needed
+			}
+
+			// Convert zteams.User to Actor using FromUser (with actorId)
+			actor := FromUser(member, actorId)
+			
+			// Marshal the actor into JSON
 			teamMemberJSON, perr := actor.MarshalJSON()
 			if perr == nil {
 				b.WriteString(string(teamMemberJSON))
@@ -124,6 +137,7 @@ func (tw *TeamWrapper) MarshalJSON() ([]byte, error) {
 
 	return b.Bytes(), nil
 }
+
 
 func (to TeamsObject) MarshalJSON() ([]byte, error) {
 	var b bytes.Buffer
