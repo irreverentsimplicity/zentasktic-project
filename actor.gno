@@ -61,7 +61,6 @@ func (a *Actor) RemoveActor() error {
 	return nil
 }
 
-
 // EditActor updates an existing actor's details in the Actors tree
 func (a *Actor) EditActor() error {
 	_, err := GetActorById(a.Id)
@@ -186,9 +185,9 @@ func GetAllActors() string {
 	return string(marshalledActors)
 }
 
-// GetActorTeams retrieves all teams associated with an actor
+// GetActorTeams retrieves all teams associated with an actor and marshals them using TeamWrapper
 func (a *Actor) GetActorTeams() (string, error) {
-	var actorTeams []*zteams.Team
+	var actorTeams []*TeamWrapper
 
 	// Iterate through all teams managed by TeamManager
 	TeamManager.Teams.Iterate("", "", func(key string, value interface{}) bool {
@@ -203,7 +202,8 @@ func (a *Actor) GetActorTeams() (string, error) {
 		// Check if the actor is a member of this team
 		for _, member := range members {
 			if member.Address == a.Address {
-				actorTeams = append(actorTeams, team)
+				// Wrap the team in TeamWrapper and add to actorTeams
+				actorTeams = append(actorTeams, &TeamWrapper{Team: team})
 				break
 			}
 		}
@@ -215,7 +215,7 @@ func (a *Actor) GetActorTeams() (string, error) {
 		return "", errors.New("actor teams not found")
 	}
 
-	// Convert zteams.Team objects to the TeamsObject format for JSON marshalling
+	// Create a TeamsObject for JSON marshaling
 	teamsObject := &TeamsObject{Teams: actorTeams}
 	marshalledTeams, err := teamsObject.MarshalJSON()
 	if err != nil {
@@ -224,6 +224,7 @@ func (a *Actor) GetActorTeams() (string, error) {
 
 	return string(marshalledTeams), nil
 }
+
 
 // GetActorTasks retrieves all tasks associated with an actor
 func (a *Actor) GetActorTasks() (string, error) {

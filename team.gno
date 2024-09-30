@@ -7,86 +7,6 @@ import (
 	"std"
 )
 
-// AssignTeamToTask assigns a task to a team
-func (t *zteams.Team) AssignTeamToTask(wt WorkableTask) error {
-	// Add the task to the team's task list
-	tasks, _ := TeamTasks.Get(t.Address.String())
-	var updatedTasks []WorkableTask
-	if tasks != nil {
-		updatedTasks = tasks.([]WorkableTask)
-	}
-	for _, task := range updatedTasks {
-		if task.Id == wt.Id {
-			return nil // Task already assigned to team
-		}
-	}
-	updatedTasks = append(updatedTasks, wt)
-	TeamTasks.Set(t.Address.String(), updatedTasks)
-	return nil
-}
-
-// UnassignTeamFromTask unassigns a task from a team
-func (t *zteams.Team) UnassignTeamFromTask(wt WorkableTask) error {
-	tasks, exist := TeamTasks.Get(t.Address.String())
-	if !exist {
-		return errors.New("team task not found")
-	}
-
-	updatedTasks := tasks.([]WorkableTask)
-	for i, task := range updatedTasks {
-		if task.Id == wt.Id {
-			updatedTasks = append(updatedTasks[:i], updatedTasks[i+1:]...)
-			if len(updatedTasks) == 0 {
-				TeamTasks.Remove(t.Address.String())
-			} else {
-				TeamTasks.Set(t.Address.String(), updatedTasks)
-			}
-			return nil
-		}
-	}
-	return errors.New("team task not found")
-}
-
-// AssignTeamToProject assigns a project to a team
-func (t *zteams.Team) AssignTeamToProject(wp *WorkableProject) error {
-	// Add the project to the team's project list
-	projects, _ := TeamProjects.Get(t.Address.String())
-	var updatedProjects []*WorkableProject
-	if projects != nil {
-		updatedProjects = projects.([]*WorkableProject)
-	}
-	for _, project := range updatedProjects {
-		if project.Id == wp.Id {
-			return nil // Project already assigned to team
-		}
-	}
-	updatedProjects = append(updatedProjects, wp)
-	TeamProjects.Set(t.Address.String(), updatedProjects)
-	return nil
-}
-
-// UnassignTeamFromProject unassigns a project from a team
-func (t *zteams.Team) UnassignTeamFromProject(wp *WorkableProject) error {
-	projects, exist := TeamProjects.Get(t.Address.String())
-	if !exist {
-		return errors.New("team project not found")
-	}
-
-	updatedProjects := projects.([]*WorkableProject)
-	for i, project := range updatedProjects {
-		if project.Id == wp.Id {
-			updatedProjects = append(updatedProjects[:i], updatedProjects[i+1:]...)
-			if len(updatedProjects) == 0 {
-				TeamProjects.Remove(t.Address.String())
-			} else {
-				TeamProjects.Set(t.Address.String(), updatedProjects)
-			}
-			return nil
-		}
-	}
-	return errors.New("team project not found")
-}
-
 // GetTeamById retrieves a team by ID using TeamManager
 func GetTeamById(teamId string) (*zteams.Team, error) {
 	// Convert the teamId string to a std.Address format used by TeamManager
@@ -100,13 +20,18 @@ func GetTeamById(teamId string) (*zteams.Team, error) {
 	return team, nil
 }
 
-// GetAllTeams retrieves all teams and returns them as a JSON string using TeamManager
-func GetAllTeams() string {
-	teams := make([]*zteams.Team, 0)
+// GetAllTeams retrieves all teams and returns them as a JSON string using TeamWrapper and TeamManager
+func GetAllTeams() (string) {
+	teams := make([]*TeamWrapper, 0)
 
 	// Iterate over all teams managed by TeamManager
 	TeamManager.Teams.Iterate("", "", func(key string, value interface{}) bool {
-		teams = append(teams, value.(*zteams.Team))
+		team := value.(*zteams.Team)
+
+		// Wrap the team in TeamWrapper
+		teamWrapper := &TeamWrapper{Team: team}
+		teams = append(teams, teamWrapper)
+
 		return false // Continue iteration
 	})
 
@@ -116,78 +41,101 @@ func GetAllTeams() string {
 	if err != nil {
 		return ""
 	}
+
 	return string(marshalledTeams)
 }
 
 
-// GetTeamTasks retrieves all tasks associated with a team
-func (t *zteams.Team) GetTeamTasks() (string, error) {
-	tasks, exist := TeamTasks.Get(t.Address.String())
-	if !exist {
-		return "", errors.New("team tasks not found")
-	}
 
-	tasksObject := zentasktic.TasksObject{Tasks: make([]zentasktic.Task, 0)}
-	for _, task := range tasks.([]WorkableTask) {
-		tasksObject.Tasks = append(tasksObject.Tasks, task.Task)
-	}
+// GetTeamTasks retrieves all tasks associated with a team using TeamWrapper
+func (tw *TeamWrapper) GetTeamTasks() (string, error) {
+    // Retrieve tasks associated with the team's address from TeamTasks
+    tasks, exist := TeamTasks.Get(tw.Team.Address.String())
+    if !exist {
+        return "", errors.New("team tasks not found")
+    }
 
-	marshalledTasks, err := tasksObject.MarshalJSON()
-	if err != nil {
-		return "", err
-	}
+    // Create a TasksObject to hold the marshaled tasks
+    tasksObject := zentasktic.TasksObject{Tasks: make([]zentasktic.Task, 0)}
+    for _, task := range tasks.([]WorkableTask) {
+        tasksObject.Tasks = append(tasksObject.Tasks, task.Task)
+    }
 
-	return string(marshalledTasks), nil
+    // Marshal the tasks into JSON
+    marshalledTasks, err := tasksObject.MarshalJSON()
+    if err != nil {
+        return "", err
+    }
+
+    return string(marshalledTasks), nil
 }
 
-// GetTeamProjects retrieves all projects associated with a team
-func (t *zteams.Team) GetTeamProjects() (string, error) {
-	projects, exist := TeamProjects.Get(t.Address.String())
-	if !exist {
-		return "", errors.New("team projects not found")
-	}
 
-	projectsObject := zentasktic.ProjectsObject{Projects: make([]zentasktic.Project, 0)}
-	for _, project := range projects.([]WorkableProject) {
-		projectsObject.Projects = append(projectsObject.Projects, project.Project)
-	}
+// GetTeamProjects retrieves all projects associated with a team using TeamWrapper
+func (tw *TeamWrapper) GetTeamProjects() (string, error) {
+    // Retrieve projects associated with the team's address from TeamProjects
+    projects, exist := TeamProjects.Get(tw.Team.Address.String())
+    if !exist {
+        return "", errors.New("team projects not found")
+    }
 
-	marshalledProjects, err := projectsObject.MarshalJSON()
-	if err != nil {
-		return "", err
-	}
+    // Create a ProjectsObject to hold the marshaled projects
+    projectsObject := zentasktic.ProjectsObject{Projects: make([]zentasktic.Project, 0)}
+    for _, project := range projects.([]WorkableProject) {
+        projectsObject.Projects = append(projectsObject.Projects, project.Project)
+    }
 
-	return string(marshalledProjects), nil
+    // Marshal the projects into JSON
+    marshalledProjects, err := projectsObject.MarshalJSON()
+    if err != nil {
+        return "", err
+    }
+
+    return string(marshalledProjects), nil
 }
 
-// GetTeamsWithAssignedTasks retrieves all teams with assigned tasks from TeamTasks
+
+// GetTeamsWithAssignedTasks retrieves all teams with assigned tasks from TeamTasks using TeamWrapper
 func GetTeamsWithAssignedTasks() (string) {
     teamsWithAssignedTasks := make([]TeamTasksObject, 0)
-    
+
     TeamTasks.Iterate("", "", func(key string, value interface{}) bool {
         tasks, ok := value.([]WorkableTask)
         if !ok {
             return false // Continue iteration if the value is not of the expected type
         }
 
-        // Cast []*WorkableTask to []zentasktic.Task
+        // Cast WorkableTask slice to zentasktic.Task slice
         taskList := make([]zentasktic.Task, len(tasks))
         for i, task := range tasks {
             taskList[i] = task.Task
         }
 
+        // Retrieve the team from TeamManager using the key
+        team, err := TeamManager.GetTeam(std.Address(key))
+        if err != nil {
+            return false // Skip this team if there's an error retrieving it
+        }
+
+        // Wrap the team in TeamWrapper
+        teamWrapper := &TeamWrapper{Team: team}
+
         teamTaskObject := TeamTasksObject{
-            TeamId:    key,
+            TeamId:    teamWrapper.Team.Address.String(), // Use the address as the team ID
             TeamTasks: taskList,
         }
+
         teamsWithAssignedTasks = append(teamsWithAssignedTasks, teamTaskObject)
         return false // Continue iteration
     })
 
+    // Create a TeamsTasksObject for marshaling into JSON
     teamsTasksObject := TeamsTasksObject{TeamsTasks: teamsWithAssignedTasks}
     marshalledTeamsTasks, err := teamsTasksObject.MarshalJSON()
     if err != nil {
         return ""
     }
+
     return string(marshalledTeamsTasks)
 }
+

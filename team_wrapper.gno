@@ -3,9 +3,6 @@ package zentasktic_project
 import (
     "errors"
     "strconv"
-    "gno.land/p/demo/users"
-    "gno.land/p/demo/avl"
-    "gno.land/p/demo/zentasktic"
     "gno.land/p/demo/zteams"
     "std"
 )

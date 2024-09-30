@@ -5,15 +5,18 @@ import (
 	"gno.land/p/demo/zentasktic"
 	"gno.land/p/demo/zteams"
 	"errors"
-	"std"
 )
 
 type ActorsObject struct {
 	Actors	[]*Actor
 }
 
+type TeamWrapper struct {
+	*zteams.Team
+}
+
 type TeamsObject struct {
-	Teams	[]*zteams.Team
+	Teams	[]*TeamWrapper
 }
 
 type TeamTasksObject struct {
@@ -75,11 +78,11 @@ func (ao ActorsObject) MarshalJSON() ([]byte, error) {
 }
 
 // MarshalJSON marshals a zteams.Team into JSON format
-func (t *zteams.Team) MarshalJSON() ([]byte, error) {
+func (tw *TeamWrapper) MarshalJSON() ([]byte, error) {
 	var b bytes.Buffer
 
 	// Check if the team is nil
-	if t == nil {
+	if tw == nil {
 		return nil, errors.New("team is nil")
 	}
 
@@ -87,19 +90,19 @@ func (t *zteams.Team) MarshalJSON() ([]byte, error) {
 
 	// Marshal the team address as the team ID
 	b.WriteString(`"teamId":"`)
-	b.WriteString(t.Address.String())
+	b.WriteString(tw.Address.String())
 	b.WriteString(`",`)
 
 	// Marshal the team name
 	b.WriteString(`"teamName":"`)
-	b.WriteString(t.TeamName)
+	b.WriteString(tw.TeamName)
 	b.WriteString(`",`)
 
 	// Marshal the team members
 	b.WriteString(`"teamMembers":[`)
 
 	// Retrieve all members of the team using TeamManager
-	members, err := TeamManager.GetAllUsersInTeam(t.Address)
+	members, err := TeamManager.GetAllUsersInTeam(tw.Address)
 	if err == nil && len(members) > 0 {
 		for i, member := range members {
 			if i > 0 {
