@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"gno.land/p/demo/zentasktic"
 	"gno.land/p/demo/zteams"
-	"gno.land/p/demo/users"
 	"errors"
 )
 

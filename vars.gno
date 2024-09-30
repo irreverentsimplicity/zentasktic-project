@@ -3,7 +3,6 @@ package zentasktic_project
 import (
 	"gno.land/p/demo/avl"
 	"gno.land/p/demo/zteams"
-	"gno.land/p/demo/users"
 	"std"
 )
 
