@@ -23,16 +23,25 @@ func FromUser(u users.User, actorId string) *Actor {
 }
 
 
-// AddActor adds a new actor to the Actors tree
+// AddActor adds a new actor to the Actors tree, ensuring no duplicate address exists
 func (a *Actor) AddActor() error {
+	// Check if the actor ID already exists in the Actors tree
 	if _, err := GetActorById(a.Id); err == nil {
-		// actor found, err is nil
 		return errors.New("actor ID already exists")
 	}
+
+	// Check if the actor's address already exists in ActorIDMap
+	if existingId, exists := ActorIDMap[a.Address]; exists {
+		return errors.New("actor with this address already exists: " + existingId)
+	}
+
+	// Add the actor to the Actors tree and ActorIDMap
 	Actors.Set(a.Id, a)
 	ActorIDMap[a.Address] = a.Id
+
 	return nil
 }
+
 
 // RemoveActor removes an actor from the Actors tree and cleans up associated data
 func (a *Actor) RemoveActor() error {
