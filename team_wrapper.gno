@@ -16,12 +16,11 @@ func init() {
 }
 
 // Wrapper function to add a team
-func AddTeamWrap(teamName string) error {
-    teamID := incrementTeamID()
+func AddTeamWrap(teamName string, teamAddress string, ownerAddress string) error {
     team := &zteams.Team{
-        Address:  std.Address(strconv.Itoa(teamID)), // Converting ID to address for demo purposes
+        Address:  std.Address(teamAddress), 
         TeamName: teamName,
-        Owner:    std.Address("OwnerAddress"), // Placeholder for owner address, update as needed
+        Owner:    std.Address(ownerAddress),
     }
     return TeamManager.AddTeam(team)
 }
