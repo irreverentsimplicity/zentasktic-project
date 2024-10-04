@@ -9,7 +9,7 @@ The basic working unit for an individual. Actors can be team members, or individ
 ```
 type Actor struct {
     Id 		    string `json:"actorId"`
-    TeamId 		string `json:"teamId"`
+    TeamId 		string `json:""`
     Name 		string `json:"actorName"`
     // github handle?
 }
@@ -17,14 +17,7 @@ type Actor struct {
 
 ## Team
 
-Teams are collective entities, they may or may not have actors assigned.
-
-```
-type Team struct {
-	Id 			string `json:"teamId"`
-	Name 		string `json:"teamName"`
-}
-```
+Teams are collective entities, they may or may not have actors assigned. The latest implementation uses `p/zteams` for team management.
 
 ## WorkHour
 

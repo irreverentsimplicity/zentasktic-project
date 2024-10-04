@@ -4,21 +4,12 @@ An opinionated, complete project management solution for the gno ecosystem as `r
 
 ## Data types
 
-There are 4 new data types defined: `Actor`, `Team`, `WorkDuration` and `RewardsPoint`. 
+There are 4 new data types defined: `Actor`, `Team`, `WorkDuration` and `RewardsPoint`. Underneath, `Actor` uses `p/users` enriching with a local `Id`. `Team` use `p/zteams`.
 
 ```
 type Actor struct {
 	Id 		    	string `json:"actorId"`
-	Name 		    string `json:"actorName"`
-	Address			std.Address	`json:"actorAddress"`
-}
-```
-
-```
-type Team struct {
-	Id 			string `json:"teamId"`
-	Name 		string `json:"teamName"`
-	Members		[]*Actor `json:"teamMembers"`
+	user		user.User,
 }
 ```
 
