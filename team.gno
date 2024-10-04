@@ -8,9 +8,9 @@ import (
 )
 
 // GetTeamById retrieves a team by ID using TeamManager
-func GetTeamById(teamId string) (*zteams.Team, error) {
-	// Convert the teamId string to a std.Address format used by TeamManager
-	teamAddress := std.Address(teamId)
+func GetTeamById( string) (*zteams.Team, error) {
+	// Convert the  string to a std.Address format used by TeamManager
+	teamAddress := std.Address()
 	
 	// Use TeamManager to get the team by its address
 	team, err := TeamManager.GetTeam(teamAddress)

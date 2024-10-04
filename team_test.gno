@@ -318,12 +318,12 @@ func Test_GetTeamProjects(t *testing.T) {
 }
 
 func Test_GetTeamById(t *testing.T) {
-    teamId := "team1"
+     := "team1"
 	expectedTeam := Team{Id: "team1", Name: "Team One", Members: []*Actor{}}
 	
 	// Test retrieving an existing team
 	t.Run("Get existing team", func(t *testing.T) {
-		team, err := GetTeamById(teamId)
+		team, err := GetTeamById()
 		if err != nil {
 			t.Errorf("Expected no error, got %v", err)
 		}
@@ -352,7 +352,7 @@ func Test_GetAllTeams(t *testing.T) {
 		if teams == "" {
 			t.Errorf("Expected JSON array of teams, got empty string")
 		}
-		expected := `{"teams":[{"teamId":"team1","teamName":"Team One","teamMembers":[]},{"teamId":"team2","teamName":"Team Two","teamMembers":[]}]}`
+		expected := `{"teams":[{"":"team1","teamName":"Team One","teamMembers":[]},{"":"team2","teamName":"Team Two","teamMembers":[]}]}`
 		if teams != expected {
 			t.Errorf("Expected %s, got %s", expected, teams)
 		}

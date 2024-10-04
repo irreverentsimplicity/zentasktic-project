@@ -20,7 +20,7 @@ type TeamsObject struct {
 }
 
 type TeamTasksObject struct {
-    TeamId    string         `json:"teamId"`
+    TeamId    string         `json:""`
     TeamTasks []zentasktic.Task `json:"tasks"`
 }
 
@@ -91,14 +91,19 @@ func (tw *TeamWrapper) MarshalJSON() ([]byte, error) {
 
 	b.WriteByte('{')
 
-	// Marshal the team address as the team ID
-	b.WriteString(`"teamId":"`)
+	// Marshal the team address
+	b.WriteString(`"teamAddress":"`)
 	b.WriteString(tw.Address.String())
 	b.WriteString(`",`)
 
 	// Marshal the team name
 	b.WriteString(`"teamName":"`)
 	b.WriteString(tw.TeamName)
+	b.WriteString(`",`)
+
+	// Marshal the team owner
+	b.WriteString(`"teamOwner":"`)
+	b.WriteString(tw.Owner.String())
 	b.WriteString(`",`)
 
 	// Marshal the team members
@@ -167,7 +172,7 @@ func (tto TeamsTasksObject) MarshalJSON() ([]byte, error) {
         if m > 0 {
             b.WriteString(`,`)
         }
-        b.WriteString(`{"teamId":"`)
+        b.WriteString(`{"":"`)
         b.WriteString(teamTaskObject.TeamId)
         b.WriteString(`", "tasks":[`)
         for i, task := range teamTaskObject.TeamTasks {

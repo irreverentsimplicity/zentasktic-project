@@ -180,7 +180,7 @@ func Test_GetActorTeams(t *testing.T) {
 			t.Errorf("Expected no error, got %v", err)
 		}
 
-		expectedJSON := `{"teams":[{"teamId":"team1","teamName":"Team One","teamMembers":[{"actorId":"1","actorName":"Updated Name","actorAddress":"newAddress"}]}]}`
+		expectedJSON := `{"teams":[{"":"team1","teamName":"Team One","teamMembers":[{"actorId":"1","actorName":"Updated Name","actorAddress":"newAddress"}]}]}`
 		if teamsJSON != expectedJSON {
 			t.Errorf("Expected JSON %s, got %s", expectedJSON, teamsJSON)
 		}

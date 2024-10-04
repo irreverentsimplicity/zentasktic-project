@@ -57,12 +57,12 @@ func RemoveActorWrap(userId string) error {
 }
 
 // Wrapper function to add an Actor to a team using zteams
-func AddActorToTeamWrap(userId string, teamId string) error {
+func AddActorToTeamWrap(userId string,  string) error {
 	actor, err := GetActorById(userId)
 	if err != nil {
 		return err
 	}
-	team, terr := TeamManager.GetTeam(std.Address(teamId))
+	team, terr := TeamManager.GetTeam(std.Address())
 	if terr != nil {
 		return terr
 	}
@@ -72,12 +72,12 @@ func AddActorToTeamWrap(userId string, teamId string) error {
 }
 
 // Wrapper function to remove an Actor from a team using zteams
-func RemoveActorFromTeamWrap(userId string, teamId string) error {
+func RemoveActorFromTeamWrap(userId string,  string) error {
 	actor, err := GetActorById(userId)
 	if err != nil {
 		return err
 	}
-	team, terr := TeamManager.GetTeam(std.Address(teamId))
+	team, terr := TeamManager.GetTeam(std.Address())
 	if terr != nil {
 		return terr
 	}
