@@ -121,7 +121,7 @@ func GetTeamsWithAssignedTasks() (string) {
         teamWrapper := &TeamWrapper{Team: team}
 
         teamTaskObject := TeamTasksObject{
-            TeamId:    teamWrapper.Team.Address.String(), // Use the address as the team ID
+            TeamAddress:    teamWrapper.Team.Address.String(), // Use the address as the team ID
             TeamTasks: taskList,
         }
 
