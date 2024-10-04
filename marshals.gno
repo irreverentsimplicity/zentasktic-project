@@ -20,7 +20,7 @@ type TeamsObject struct {
 }
 
 type TeamTasksObject struct {
-    TeamId    string         `json:""`
+    TeamAddress    string         `json:"teamAddress"`
     TeamTasks []zentasktic.Task `json:"tasks"`
 }
 
@@ -172,8 +172,8 @@ func (tto TeamsTasksObject) MarshalJSON() ([]byte, error) {
         if m > 0 {
             b.WriteString(`,`)
         }
-        b.WriteString(`{"":"`)
-        b.WriteString(teamTaskObject.TeamId)
+        b.WriteString(`{"teamAddress":"`)
+        b.WriteString(teamTaskObject.TeamAddress)
         b.WriteString(`", "tasks":[`)
         for i, task := range teamTaskObject.TeamTasks {
             if i > 0 {
